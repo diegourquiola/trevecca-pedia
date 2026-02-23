@@ -92,7 +92,8 @@ func GetMostRecentSnapshot(ctx context.Context, db *sql.DB, revId uuid.UUID) (*S
 	if err != nil {
 		return nil, err
 	}
-	if snapCount == 1 {
+	switch snapCount {
+	case 1:
 		err = db.QueryRowContext(
 			ctx,
 			`SELECT uuid FROM snapshots
@@ -102,7 +103,9 @@ func GetMostRecentSnapshot(ctx context.Context, db *sql.DB, revId uuid.UUID) (*S
 		if err != nil {
 			return nil, err
 		}
-	} else {
+	case 0:
+		return nil, sql.ErrNoRows
+	default:
 		err = db.QueryRowContext(
 			ctx,
 			`SELECT snapshots.uuid FROM snapshots

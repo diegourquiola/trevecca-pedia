@@ -155,7 +155,7 @@ func PostPageRevision(c *gin.Context) {
 	fileHeader, err := c.FormFile("new_content")
 	if err != nil {
 		if err == http.ErrMissingFile {
-            c.JSON(http.StatusBadRequest, gin.H{"error": "new_page file is required"})
+            c.JSON(http.StatusBadRequest, gin.H{"error": "new_content file is required"})
             return
         }
         c.JSON(http.StatusBadRequest, gin.H{"error": "invalid file upload: " + err.Error()})

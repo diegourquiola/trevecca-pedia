@@ -19,22 +19,22 @@ import (
 )
 
 func CreateRevision(ctx context.Context, db *sql.DB, tx *sql.Tx, dataDir string, revReq RevisionRequest) (uuid.UUID, error) {
+	pageUUID, err := database.GetUUID(ctx, db, revReq.PageId)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
 	var revUUID uuid.UUID
-	err := tx.QueryRowContext(ctx, `
+	err = tx.QueryRowContext(ctx, `
 			INSERT INTO revisions (page_id, author, slug, name, archive_date, deleted_at)
 			VALUES ($1, $2, $3, $4, $5, $6)
 			RETURNING uuid;
-			`, revReq.PageId, revReq.Author, revReq.Slug, revReq.Name, revReq.ArchiveDate, revReq.DeletedAt).Scan(&revUUID)
+			`, pageUUID, revReq.Author, revReq.Slug, revReq.Name, revReq.ArchiveDate, revReq.DeletedAt).Scan(&revUUID)
 	if err != nil {
 		fmt.Printf("Error writing to db: %s\n", err)
 		return uuid.UUID{}, err
 	}
 	
 	// create the diff and make the revision
-	pageUUID, err := database.GetUUID(ctx, db, revReq.PageId)
-	if err != nil {
-		return uuid.UUID{}, err
-	}
 	pageContent, err := filesystem.GetPageContent(ctx, db, dataDir, pageUUID)
 	if err != nil {
 		return uuid.UUID{}, err
