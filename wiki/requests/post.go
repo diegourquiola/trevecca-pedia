@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 	"wiki/database"
 	wikierrors "wiki/errors"
 	"wiki/filesystem"
 	"wiki/utils"
 
+	"github.com/aymanbagabas/go-udiff"
 	"github.com/google/uuid"
 )
 
@@ -76,17 +78,57 @@ func DeletePage(ctx context.Context, db *sql.DB, dataDir string, delReq utils.De
 		return wikierrors.InternalError(err)
 	}
 
-	_, err = tx.ExecContext(ctx, `
+	var deletedAt *time.Time
+	err = tx.QueryRowContext(ctx, `
 		UPDATE pages
 		SET deleted_at=NOW()
-		WHERE uuid=$1;
-	`, pageInfo.UUID)
+		WHERE uuid=$1
+		RETURNING deleted_at;
+	`, pageInfo.UUID).Scan(&deletedAt)
 	if err != nil {
 		tx.Rollback()
 		return wikierrors.DatabaseError(err)
 	}
 
-	tx.Commit()
+	var revId uuid.UUID
+	err = tx.QueryRowContext(ctx, `
+			INSERT INTO revisions (page_id, author, slug, name, archive_date, deleted_at)
+			VALUES ($1, $2, $3, $4, $5, NOW())
+			RETURNING uuid;
+			`, pageInfo.UUID, delReq.User, pageInfo.Slug, pageInfo.Name, pageInfo.ArchiveDate, deletedAt).
+		Scan(&revId)
+	if err != nil {
+		fmt.Printf("Error writing to db: %s\n", err)
+		return wikierrors.DatabaseError(err)
+	}
+
+	// Create diff with empty change
+	pageContent, err := filesystem.GetPageContent(ctx, db, dataDir, pageUUID)
+	if err != nil {
+		tx.Rollback()
+		return wikierrors.FilesystemError(err)
+	}
+	// Create a diff showing no changes (old == new)
+	pageFilename := fmt.Sprintf("%s.md", pageInfo.Slug)
+	diff := udiff.Unified(pageFilename, pageFilename, pageContent, pageContent)
+	// Write the revision file
+	filename := fmt.Sprintf("%s_%s.txt", pageInfo.Slug, revId)
+	err = os.MkdirAll(filepath.Join(dataDir, "revisions"), 0755)
+	if err != nil {
+		tx.Rollback()
+		return wikierrors.FilesystemError(err)
+	}
+	err = os.WriteFile(filepath.Join(dataDir, "revisions", filename), []byte(diff), 0644)
+	if err != nil {
+		tx.Rollback()
+		return wikierrors.FilesystemError(err)
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		os.Remove(filepath.Join(dataDir, "revisions", fmt.Sprintf("%s_%s.txt", pageInfo.Slug, revId)))
+		return wikierrors.DatabaseError(err)
+	}
 	return nil
 }
 

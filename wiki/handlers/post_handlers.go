@@ -61,9 +61,22 @@ func NewPageHandler(c *gin.Context) {
 		})
 		return
 	}
-	newPageReq.Slug = c.PostForm("slug")
-	newPageReq.Name = c.PostForm("name")
 	newPageReq.Author = c.PostForm("author")
+
+	newPageReq.Slug = c.PostForm("slug")
+	if newPageReq.Slug == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": "bad request format",
+		})
+		return
+	}
+	newPageReq.Name = c.PostForm("name")
+	if newPageReq.Name == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": "bad request format",
+		})
+		return
+	}
 
 	// Handle optional archive_date
 	archiveDateStr := c.PostForm("archive_date")
