@@ -12,12 +12,12 @@ INSERT INTO pages VALUES ('c32b2206-ca5f-407c-b6d0-89b7da1e4c2b', 'spiritual-lif
 INSERT INTO revisions VALUES ('1978e5ee-8906-4da2-a930-47b394029bae', '1e5430e8-b398-4ed8-986e-71a4ade8228d', '2026-01-26 00:13:59.188244', 'pdhager', 'history', 'History', NULL, NULL);
 INSERT INTO revisions VALUES ('2d4460fe-9cd6-4707-bf78-b2c38f009e29', 'f27287a0-06c0-4b01-8380-fb2ba3a318a8', '2026-01-26 00:13:59.170213', 'pdhager', 'accreditation', 'Accreditation', NULL, NULL);
 INSERT INTO revisions VALUES ('3d40609d-c30e-460c-a8d4-5b828a36211c', '1cbe7062-1e76-401f-98e2-f71ca69a9480', '2026-01-26 00:13:59.216109', 'pdhager', 'nazarene-beliefs', 'Nazarene Beliefs', NULL, NULL);
-INSERT INTO revisions VALUES ('4a76899b-0051-444d-92cb-8017f09f2fea', '07918316-875e-4581-87ab-5b8d1d8bdd3a', '2025-12-18 20:18:09.115549', '0000001', 'dan-boone', 'Dan Boone', NULL, NULL);
 INSERT INTO revisions VALUES ('68710e0f-a6cb-4ef8-8744-b070f0b6179d', '44927247-4240-44c4-91fa-faac2b1d264e', '2026-01-26 00:13:59.228129', 'pdhager', 'offices-services', 'Offices & Services', NULL, NULL);
 INSERT INTO revisions VALUES ('902c4606-9ef0-4a34-8913-1016a87ac62b', '5f33ce0e-2e16-4ffb-aa8a-cd9794a7608c', '2026-01-26 00:13:59.202115', 'pdhager', 'mission-and-goals', 'Mission And Goals', NULL, NULL);
 INSERT INTO revisions VALUES ('a9519a06-c79d-4f41-a3e4-0cb919d0127c', 'c32b2206-ca5f-407c-b6d0-89b7da1e4c2b', '2026-01-24 22:13:23.402381', 'pdhager', 'spiritual-life', 'Spiritual Life', NULL, NULL);
 INSERT INTO revisions VALUES ('e7f9f820-2e2d-49c1-954f-77537a951bc5', 'dcf043c9-b897-4444-9252-fcfc996b0db8', '2026-01-26 00:06:05.117809', 'pdhager', 'about', 'About', NULL, NULL);
 INSERT INTO revisions VALUES ('e98eb510-8a71-401b-9797-2d08e45151b9', '07918316-875e-4581-87ab-5b8d1d8bdd3a', '2025-12-18 20:18:00', 'pdhager', 'dan-boone', 'Dan Boone', NULL, NULL);
+INSERT INTO revisions VALUES ('4a76899b-0051-444d-92cb-8017f09f2fea', '07918316-875e-4581-87ab-5b8d1d8bdd3a', '2025-12-18 20:18:09.115549', '0000001', 'dan-boone', 'Dan Boone', NULL, NULL);
 
 INSERT INTO snapshots VALUES ('2b740a08-1c34-497e-a188-21273a8c8c10', '1e5430e8-b398-4ed8-986e-71a4ade8228d', '1978e5ee-8906-4da2-a930-47b394029bae');
 INSERT INTO snapshots VALUES ('46976289-d152-43d3-a2d7-f75b3102e471', '07918316-875e-4581-87ab-5b8d1d8bdd3a', 'e98eb510-8a71-401b-9797-2d08e45151b9');

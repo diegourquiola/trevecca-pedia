@@ -9,13 +9,12 @@ import (
 	_ "github.com/lib/pq"
 )
 
-
 func GetPageInfo(ctx context.Context, db *sql.DB, uuid uuid.UUID) (*PageInfo, error) {
 	var p PageInfo
 	err := db.QueryRowContext(
-			ctx,
-			"SELECT uuid, slug, name, last_revision_id, archive_date FROM pages WHERE uuid=$1", uuid.String()).
-			Scan(&p.UUID, &p.Slug, &p.Name, &p.LastRevisionId, &p.ArchiveDate)
+		ctx,
+		"SELECT uuid, slug, name, last_revision_id, archive_date FROM pages WHERE uuid=$1", uuid.String()).
+		Scan(&p.UUID, &p.Slug, &p.Name, &p.LastRevisionId, &p.ArchiveDate)
 	if err != nil {
 		return nil, err
 	}
@@ -40,10 +39,10 @@ func GetPageDeleted(ctx context.Context, db *sql.DB, pageUUID uuid.UUID) (bool, 
 func GetPageRevisionsInfo(ctx context.Context, db *sql.DB, pageId uuid.UUID) ([]RevInfo, error) {
 	var revs []RevInfo
 	rows, err := db.QueryContext(
-				ctx,
-				`SELECT uuid, date_time, author, slug, name, archive_date, deleted_at 
+		ctx,
+		`SELECT uuid, date_time, author, slug, name, archive_date, deleted_at 
 				FROM revisions WHERE page_id=$1 ORDER BY date_time`,
-				pageId.String())
+		pageId.String())
 	if err != nil {
 		return nil, err
 	}
@@ -64,10 +63,10 @@ func GetPageRevisionsInfo(ctx context.Context, db *sql.DB, pageId uuid.UUID) ([]
 func GetRevisionInfo(ctx context.Context, db *sql.DB, revId uuid.UUID) (*RevInfo, error) {
 	var rev RevInfo
 	err := db.QueryRowContext(
-				ctx,
-				`SELECT uuid, page_id, date_time, author, slug, name, archive_date, deleted_at 
+		ctx,
+		`SELECT uuid, page_id, date_time, author, slug, name, archive_date, deleted_at 
 				FROM revisions WHERE uuid=$1`,
-				revId).Scan(&rev.UUID, &rev.PageId, &rev.DateTime, &rev.Author, &rev.Slug, &rev.Name, &rev.ArchiveDate, &rev.DeletedAt)
+		revId).Scan(&rev.UUID, &rev.PageId, &rev.DateTime, &rev.Author, &rev.Slug, &rev.Name, &rev.ArchiveDate, &rev.DeletedAt)
 	if err != nil {
 		return nil, err
 	}
@@ -134,6 +133,14 @@ func GetMissingRevisions(ctx context.Context, db *sql.DB, revId uuid.UUID) ([]Re
 	var revs []RevInfo
 	var count int
 	var snapRevTime time.Time
+	revInfo, err := GetRevisionInfo(ctx, db, revId)
+	if err != nil {
+		return nil, err
+	}
+	if revInfo.PageId == nil {
+		return nil, sql.ErrNoRows
+	}
+	pageId := *revInfo.PageId
 
 	snap, err := GetMostRecentSnapshot(ctx, db, revId)
 	if err != nil {
@@ -153,8 +160,8 @@ func GetMissingRevisions(ctx context.Context, db *sql.DB, revId uuid.UUID) ([]Re
 	}
 	err = db.QueryRowContext(
 		ctx,
-		"SELECT COUNT(*) FROM revisions WHERE date_time > $1",
-		snapRevTime).
+		"SELECT COUNT(*) FROM revisions WHERE page_id=$1 AND date_time > $2",
+		pageId, snapRevTime).
 		Scan(&count)
 	if err != nil {
 		return nil, err
@@ -162,9 +169,9 @@ func GetMissingRevisions(ctx context.Context, db *sql.DB, revId uuid.UUID) ([]Re
 	revs = make([]RevInfo, count)
 
 	revIds, err := db.QueryContext(
-				ctx,
-				"SELECT uuid FROM revisions WHERE date_time > $1 ORDER BY date_time ASC",
-				snapRevTime)
+		ctx,
+		"SELECT uuid FROM revisions WHERE page_id=$1 AND date_time > $2 ORDER BY date_time ASC",
+		pageId, snapRevTime)
 	if err != nil {
 		return nil, err
 	}
@@ -182,4 +189,3 @@ func GetMissingRevisions(ctx context.Context, db *sql.DB, revId uuid.UUID) ([]Re
 
 	return revs, nil
 }
-
