@@ -40,7 +40,8 @@ WORKDIR /app
 RUN apk add --no-cache git
 
 # Copy go.mod and go.sum first for better caching
-COPY go.mod go.sum ./
+COPY go.mod ./
+RUN go mod tidy
 RUN go mod download
 
 # Copy source code and generated templates
