@@ -30,6 +30,8 @@ COPY . .
 # Generate go.sum and download dependencies
 RUN go mod tidy
 RUN go mod download
+RUN go install github.com/a-h/templ/cmd/templ@latest
+RUN templ generate
 
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o tmp/web-service ./cmd/main.go
