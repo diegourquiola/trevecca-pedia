@@ -39,14 +39,15 @@ WORKDIR /app
 # Install build dependencies
 RUN apk add --no-cache git
 
-# Copy go.mod and go.sum first for better caching
-COPY go.mod ./
-RUN go mod tidy
-RUN go mod download
-
-# Copy source code and generated templates
+# Copy source code first (needed for go mod tidy to see imports)
 COPY . .
 COPY --from=templ-generator /app/templates ./templates
+
+# Run go mod tidy to generate go.sum based on actual imports
+RUN go mod tidy
+
+# Download dependencies
+RUN go mod download
 
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-w -s" -o tmp/web-service ./cmd/main.go
