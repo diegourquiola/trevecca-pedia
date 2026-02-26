@@ -2,9 +2,12 @@ package handlers
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"io"
 	"net/http"
 	"time"
+	"wiki/database"
 	wikierrors "wiki/errors"
 	"wiki/requests"
 	"wiki/utils"
@@ -60,9 +63,22 @@ func NewPageHandler(c *gin.Context) {
 		})
 		return
 	}
-	newPageReq.Slug = c.PostForm("slug")
-	newPageReq.Name = c.PostForm("name")
 	newPageReq.Author = c.PostForm("author")
+
+	newPageReq.Slug = c.PostForm("slug")
+	if newPageReq.Slug == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": "bad request format",
+		})
+		return
+	}
+	newPageReq.Name = c.PostForm("name")
+	if newPageReq.Name == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": "bad request format",
+		})
+		return
+	}
 
 	// Handle optional archive_date
 	archiveDateStr := c.PostForm("archive_date")
@@ -119,6 +135,12 @@ func DeletePageHandler(c *gin.Context) {
 	}
 
 	delReq.Slug = c.PostForm("slug")
+	if delReq.Slug == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": "slug is required",
+		})
+		return
+	}
 	delReq.User = c.PostForm("user")
 
 	err = requests.DeletePage(ctx, db, dataDir, delReq)
@@ -161,7 +183,7 @@ func NewRevisionHandler(c *gin.Context) {
 		})
 		return
 	}
-	file, err := c.FormFile("new_page")
+	file, err := c.FormFile("new_content")
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error": "bad request format",
@@ -186,8 +208,85 @@ func NewRevisionHandler(c *gin.Context) {
 		return
 	}
 	revReq.PageId = c.PostForm("page_id")
+	if revReq.PageId == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": "page_id is required",
+		})
+		return
+	}
 	revReq.Author = c.PostForm("author")
-	revReq.NewPage = string(newPageBytes)
+
+	pageId, err := database.GetUUID(ctx, db, revReq.PageId)
+	if err != nil {
+		var werr wikierrors.WikiError
+		if errors.Is(err, sql.ErrNoRows) {
+			werr = wikierrors.PageNotFound()
+		} else {
+			werr = wikierrors.DatabaseError(err)
+		}
+		c.AbortWithStatusJSON(werr.Code, gin.H{
+			"error": werr.Details,
+		})
+		return
+	}
+	pageInfo, err := database.GetPageInfo(ctx, db, pageId)
+	if err != nil {
+		var werr wikierrors.WikiError
+		if errors.Is(err, sql.ErrNoRows) {
+			werr = wikierrors.PageNotFound()
+		} else {
+			werr = wikierrors.DatabaseError(err)
+		}
+		c.AbortWithStatusJSON(werr.Code, gin.H{
+			"error": werr.Details,
+		})
+		return
+	}
+
+	revReq.Slug = c.PostForm("slug")
+	if revReq.Slug == "" {
+		revReq.Slug = pageInfo.Slug
+	}
+	revReq.Name = c.PostForm("name")
+	if revReq.Name == "" {
+		revReq.Name = pageInfo.Name
+	}
+
+	archiveDateStr := c.PostForm("archive_date")
+	if archiveDateStr != "" {
+		archiveDate, err := time.Parse("2006-01-02", archiveDateStr)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"error": "bad request format",
+			})
+			return
+		}
+		revReq.ArchiveDate = &archiveDate
+	} else {
+		revReq.ArchiveDate = pageInfo.ArchiveDate
+	}
+
+	var deletedAt *time.Time
+	err = db.QueryRowContext(ctx, `
+		SELECT deleted_at FROM pages WHERE uuid=$1;
+	`, pageId).Scan(&deletedAt)
+	if err != nil {
+		werr := wikierrors.DatabaseError(err)
+		c.AbortWithStatusJSON(werr.Code, gin.H{
+			"error": werr.Details,
+		})
+		return
+	}
+	if deletedAt != nil {
+		werr := wikierrors.PageDeleted()
+		c.AbortWithStatusJSON(werr.Code, gin.H{
+			"error": werr.Details,
+		})
+		return
+	}
+	revReq.DeletedAt = deletedAt
+
+	revReq.NewContent = string(newPageBytes)
 
 	err = requests.PostRevision(ctx, db, dataDir, revReq)
 	if err != nil {
@@ -203,5 +302,3 @@ func NewRevisionHandler(c *gin.Context) {
 
 	c.Status(http.StatusOK)
 }
-
-

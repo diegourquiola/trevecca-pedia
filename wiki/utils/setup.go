@@ -47,7 +47,7 @@ func GetDatabase() (*sql.DB, error) {
 		log.Printf("Failed to connect to database: %s\n", err)
 		return nil, wikierrors.DatabaseError(err)
 	}
-	log.Printf("Connected to database: %s\n", connStr)
+	//log.Printf("Connected to database: %s\n", connStr)
 	return db, nil
 }
 
@@ -96,7 +96,7 @@ func parseDatabaseURL(databaseURL string) (host, port, dbname, user, password st
 
 func GetDataDir() string {
 	if dataDir := os.Getenv("WIKI_DATA_DIR"); dataDir != "" {
-		log.Printf("dataDir: %s\n", dataDir)
+		//log.Printf("dataDir: %s\n", dataDir)
 		return dataDir
 	}
 	return filepath.Join("..", "wiki-fs")

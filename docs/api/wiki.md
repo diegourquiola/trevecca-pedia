@@ -43,18 +43,19 @@ So, calls to the `wiki` service begin with: `/v1/wiki`
 
 ### HTTP `POST` Requests
 
-| Type      | Route                                     | Arguments             | Fields            |
+| Type      | Route                                     | Arguments             | Description       |
 | ---       | ---                                       | ---                   | ---               |
-| `POST`    | `/pages/new`                              | N/A                   | `slug`, `name`, `author`, `archive_date`, `new_page`  |
-| `POST`    | `/pages/:id/delete`                       | `:id`                 | `slug`, `user`    |
-| `POST`    | `/pages/:id/revisions`                    | `:id`                 | `page_id`, `author`, `new_page` |
+| `POST`    | `/pages/new`                              | N/A                   | Creates a new page entry with the submitted info.  |
+| `POST`    | `/pages/:id/delete`                       | `:id`                 | Deletes the specified page.    |
+| `POST`    | `/pages/:id/revisions`                    | `:id`                 | Creates a new revision of the specified page. |
 
 #### `/pages/new`
-**Description:** Creates a new page entry with the submitted info.  
 This is implemented using a multipart form, with the fields being passed in as form data.  This is useful because it allows the `new_page` file to be passed in as a file, rather than just a string.  
-**Type:** `POST`  
-**Arguments:** None  
-**Fields:**  
+
+**Type:** `POST`
+**Arguments:** None
+
+**Fields:**
 `slug`: the unique, human-readable identifier for the page  
     - all lowercase, kebab-case  
 `name`: title of the page  
@@ -67,22 +68,26 @@ This is implemented using a multipart form, with the fields being passed in as f
 `new_page`: the markdown file with the page content  
 
 #### `/pages/:id/delete`
-**Description:** Deletes the specified page.  
-**Type:** `POST`  
-**Arguments:**  
-`:id`: the slug (or uuid) of the page to delete  
-**Fields**:  
+Deletes the specified page.  
+
+**Type:** `POST`
+**Arguments:**
+`:id`: the slug (or uuid) of the page to delete
+
+**Fields:**
 `slug`: the slug of the page to delete (should match `:id`)  
 `user`: the user identification performing the deletion  
 
 #### `/pages/:id/revisions`
-**Description:** Creates a new revision of the specified page with the difference between the current content and that specified in the `new_page` file.  
-This is implemented using a multipart form, with the fields being passed in as form data.  This is useful because it allows the `new_page` file to be passed in as a file, rather than just a string.  
-**Type:** `POST`  
-**Arguments:**  
-`:id`: the slug (or uuid) of the page  
-    - this isn't really used as of right now, as the id of the page is also passed in as a form field (`page_id`)  
-**Fields**:  
+Creates a new revision of the specified page with the difference between the current content and that specified in the `new_page` file.  
+This is implemented using a multipart form, with the fields being passed in as form data.  This is useful because it allows the `new_page` file to be passed in as a file, rather than just a string.
+
+**Type:** `POST`
+**Arguments:**
+`:id`: the slug (or uuid) of the page
+    - this isn't really used as of right now, as the id of the page is also passed in as a form field (`page_id`)
+
+**Fields:**
 `page_id`: the slug (or uuid) of the page being revised  
 `author`: author identification  
     - not really implemented yet. using student email username for now, but that definitely won't be the actual implementation.  

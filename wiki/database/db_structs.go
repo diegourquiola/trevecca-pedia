@@ -19,6 +19,10 @@ type RevInfo struct {
 	PageId		*uuid.UUID	`db:"page_id"`
 	DateTime	*time.Time	`db:"date_time"`
 	Author		*string		`db:"author"`
+	Slug		string		`db:"slug"`
+	Name		string		`db:"name"`
+	ArchiveDate	*time.Time	`db:"archive_date"`
+	DeletedAt	*time.Time	`db:"deleted_at"`
 }
 
 type SnapInfo struct {

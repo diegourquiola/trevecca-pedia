@@ -13,29 +13,35 @@ import (
 	wikierrors "wiki/errors"
 	"wiki/filesystem"
 
+	"github.com/aymanbagabas/go-udiff"
 	"github.com/bluekeyes/go-gitdiff/gitdiff"
 	"github.com/google/uuid"
 )
 
-func PushRevisionToDBFS(ctx context.Context, db *sql.DB, dataDir string, revReq RevisionRequest, diff string) (uuid.UUID, error) {
-	tx, err := db.BeginTx(ctx, nil)
+func CreateRevision(ctx context.Context, db *sql.DB, tx *sql.Tx, dataDir string, revReq RevisionRequest) (uuid.UUID, error) {
+	pageUUID, err := database.GetUUID(ctx, db, revReq.PageId)
 	if err != nil {
 		return uuid.UUID{}, err
 	}
-	defer tx.Rollback()
-
 	var revUUID uuid.UUID
 	err = tx.QueryRowContext(ctx, `
-			INSERT INTO revisions (page_id, author)
-			VALUES ($1, $2)
+			INSERT INTO revisions (page_id, author, slug, name, archive_date, deleted_at)
+			VALUES ($1, $2, $3, $4, $5, $6)
 			RETURNING uuid;
-			`, revReq.PageId, revReq.Author).Scan(&revUUID)
+			`, pageUUID, revReq.Author, revReq.Slug, revReq.Name, revReq.ArchiveDate, revReq.DeletedAt).Scan(&revUUID)
 	if err != nil {
-		fmt.Printf("Error writing to db: %s\n", err)
 		return uuid.UUID{}, err
 	}
-	
-	filename := fmt.Sprintf("%s.txt", revUUID)
+
+	// create the diff and make the revision
+	pageContent, err := filesystem.GetPageContent(ctx, db, dataDir, pageUUID)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+	pageFilename := filepath.Join(dataDir, "pages", fmt.Sprintf("%s.md", revReq.Slug))
+	diff := udiff.Unified(pageFilename, pageFilename, pageContent, revReq.NewContent)
+
+	filename := fmt.Sprintf("%s_%s.txt", revReq.Slug, revUUID)
 	err = os.MkdirAll(filepath.Join(dataDir, "revisions"), 0755)
 	if err != nil {
 		return uuid.UUID{}, fmt.Errorf("creating revisions directory: %w", err)
@@ -45,26 +51,109 @@ func PushRevisionToDBFS(ctx context.Context, db *sql.DB, dataDir string, revReq 
 		return uuid.UUID{}, err
 	}
 
-	err = tx.Commit()
-	if err != nil {
-		os.Remove(filepath.Join(dataDir, "revisions", filename))
-		return uuid.UUID{}, err
-	}
 	return revUUID, nil
 }
 
-func CreateSnapshot(ctx context.Context, db *sql.DB, dataDir string, pageId uuid.UUID, revId uuid.UUID) (uuid.UUID, error) {
-	tx, err := db.BeginTx(ctx, nil)
+func UpdatePage(ctx context.Context, db *sql.DB, tx *sql.Tx, dataDir string, revId uuid.UUID) error {
+	var revInfo database.RevInfo
+	err := tx.QueryRowContext(ctx, `
+		SELECT uuid, page_id, date_time, author, slug, name, archive_date, deleted_at
+		FROM revisions
+		WHERE uuid=$1;
+	`, revId).Scan(&revInfo.UUID, &revInfo.PageId, &revInfo.DateTime, &revInfo.Author,
+		&revInfo.Slug, &revInfo.Name, &revInfo.ArchiveDate, &revInfo.DeletedAt)
 	if err != nil {
-		return uuid.UUID{}, err
+		return err
+	}
+	var currSlug string
+	err = tx.QueryRowContext(ctx, `
+		SELECT slug FROM pages WHERE uuid=$1;
+	`, revInfo.PageId).Scan(&currSlug)
+	if err != nil {
+		return err
+	}
+	contentAtRev, err := GetContentAtRevision(ctx, db, dataDir, *revInfo.PageId, revId)
+	if err != nil {
+		return wikierrors.DatabaseFilesystemError(err)
 	}
 
+	_, err = tx.ExecContext(ctx, `
+		UPDATE pages
+		SET slug=$1, name=$2, archive_date=$3, deleted_at=$4
+		WHERE uuid=$5;
+	`, revInfo.Slug, revInfo.Name, revInfo.ArchiveDate, revInfo.DeletedAt, revInfo.PageId)
+	if err != nil {
+		return wikierrors.DatabaseError(err)
+	}
+
+	if revInfo.Slug != currSlug {
+		err = os.Rename(filepath.Join(dataDir, "pages", fmt.Sprintf("%s.md", currSlug)),
+			filepath.Join(dataDir, "pages", fmt.Sprintf("%s.md", revInfo.Slug)))
+		if err != nil {
+			return err
+		}
+		revs, err := tx.QueryContext(ctx, `
+			SELECT uuid FROM revisions WHERE page_id=$1;
+		`, revInfo.PageId)
+		if err != nil {
+			return err
+		}
+		defer revs.Close()
+		for revs.Next() {
+			var currRevId uuid.UUID
+			err = revs.Scan(&currRevId)
+			if err != nil {
+				return err
+			}
+			if currRevId == *revInfo.UUID {
+				continue
+			}
+			err = os.Rename(filepath.Join(dataDir, "revisions", fmt.Sprintf("%s_%s.txt", currSlug, currRevId)),
+				filepath.Join(dataDir, "revisions", fmt.Sprintf("%s_%s.txt", revInfo.Slug, currRevId)))
+			if err != nil {
+				return err
+			}
+		}
+		revs.Close()
+		snaps, err := tx.QueryContext(ctx, `
+			SELECT uuid FROM snapshots WHERE page=$1;
+		`, revInfo.PageId)
+		if err != nil {
+			return err
+		}
+		defer snaps.Close()
+		for snaps.Next() {
+			var currSnapId uuid.UUID
+			err = snaps.Scan(&currSnapId)
+			if err != nil {
+				return err
+			}
+			err = os.Rename(filepath.Join(dataDir, "snapshots", fmt.Sprintf("%s_%s.md", currSlug, currSnapId)),
+				filepath.Join(dataDir, "snapshots", fmt.Sprintf("%s_%s.md", revInfo.Slug, currSnapId)))
+			if err != nil {
+				return err
+			}
+		}
+		snaps.Close()
+	}
+
+	pageFilename := fmt.Sprintf("%s.md", revInfo.Slug)
+	pageFilepath := filepath.Join(dataDir, "pages", pageFilename)
+	err = os.WriteFile(pageFilepath, []byte(contentAtRev), 0644)
+	if err != nil {
+		return wikierrors.FilesystemError(err)
+	}
+
+	return nil
+}
+
+func CreateSnapshot(ctx context.Context, db *sql.DB, tx *sql.Tx, dataDir string, pageId uuid.UUID, revId uuid.UUID) (uuid.UUID, error) {
 	var snapUUID uuid.UUID
-	err = tx.QueryRowContext(ctx, `
+	err := tx.QueryRowContext(ctx, `
 			INSERT INTO snapshots (page, revision)
 			VALUES ($1, $2)
 			RETURNING uuid;
-			`, pageId, revId).Scan(snapUUID)
+			`, pageId, revId).Scan(&snapUUID)
 	if err != nil {
 		return uuid.UUID{}, err
 	}
@@ -74,7 +163,15 @@ func CreateSnapshot(ctx context.Context, db *sql.DB, dataDir string, pageId uuid
 		return uuid.UUID{}, err
 	}
 
-	filename := fmt.Sprintf("%s.md", snapUUID)
+	var pageSlug string
+	err = tx.QueryRowContext(ctx, `
+		SELECT slug FROM pages WHERE uuid=$1;
+	`, pageId).Scan(&pageSlug)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+
+	filename := fmt.Sprintf("%s_%s.md", pageSlug, snapUUID)
 	err = os.MkdirAll(filepath.Join(dataDir, "snapshots"), 0755)
 	if err != nil {
 		return uuid.UUID{}, fmt.Errorf("creating snapshots directory: %w", err)
@@ -84,12 +181,7 @@ func CreateSnapshot(ctx context.Context, db *sql.DB, dataDir string, pageId uuid
 		return uuid.UUID{}, err
 	}
 
-	err = tx.Commit()
-	if err != nil {
-		os.Remove(filepath.Join(dataDir, "snapshots", filename))
-		return uuid.UUID{}, err
-	}
-	return uuid.UUID{}, nil
+	return snapUUID, nil
 }
 
 func GetContentAtRevision(ctx context.Context, db *sql.DB, dataDir string, pageId uuid.UUID, revId uuid.UUID) (string, error) {
@@ -112,11 +204,11 @@ func GetContentAtRevision(ctx context.Context, db *sql.DB, dataDir string, pageI
 	// i hope and pray that this works
 	// update: it worked. most errors were elsewhere :)
 	for _, r := range missingRevs {
-		revContent, err := filesystem.GetRevisionContent(ctx, db, dataDir, *r.UUID)
+		revDiff, err := filesystem.GetRevisionContent(ctx, db, dataDir, *r.UUID)
 		if err != nil {
 			return "", wikierrors.FilesystemError(err)
 		}
-		files, _, err := gitdiff.Parse(bytes.NewReader([]byte(revContent)))
+		files, _, err := gitdiff.Parse(bytes.NewReader([]byte(revDiff)))
 		if err != nil {
 			return "", fmt.Errorf("couldn't parse revision: %w", err)
 		}
@@ -163,12 +255,12 @@ func GetPageInfoPreview(ctx context.Context, db *sql.DB, dataDir string, pageId 
 		pageInfo.ArchiveDate = &time.Time{}
 	}
 	return &PageInfoPrev{
-		UUID: pageInfo.UUID,
-		Slug: pageInfo.Slug,
-		Name: pageInfo.Name,
+		UUID:         pageInfo.UUID,
+		Slug:         pageInfo.Slug,
+		Name:         pageInfo.Name,
 		LastEditTime: lastEditTime,
-		ArchiveDate: *pageInfo.ArchiveDate,
-		Preview: preview,
+		ArchiveDate:  *pageInfo.ArchiveDate,
+		Preview:      preview,
 	}, nil
 }
 
@@ -208,4 +300,3 @@ func GetIndexInfo(ctx context.Context, db *sql.DB, dataDir string, pageId string
 	}
 	return &indexInfo, nil
 }
-

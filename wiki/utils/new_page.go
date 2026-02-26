@@ -34,10 +34,10 @@ func CreateNewPage(ctx context.Context, db *sql.DB, dataDir string, req NewPageR
 	// create revision db entry
 	var revId uuid.UUID
 	err = tx.QueryRowContext(ctx, `
-		INSERT INTO revisions (page_id, author)
-		VALUES ($1, $2)
+		INSERT INTO revisions (page_id, author, slug, name, archive_date)
+		VALUES ($1, $2, $3, $4, $5)
 		RETURNING uuid;
-	`, pageId, req.Author).Scan(&revId)
+	`, pageId, req.Author, req.Slug, req.Name, req.ArchiveDate).Scan(&revId)
 	if err != nil {
 		return err
 	}

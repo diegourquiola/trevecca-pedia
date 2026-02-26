@@ -31,9 +31,9 @@ func GetPageFilename(ctx context.Context, db *sql.DB, dataDir string, id string)
 func GetRevisionFilename(ctx context.Context, db *sql.DB, dataDir string, uuid uuid.UUID) (string, error) {
 	var slug string
 	err := db.QueryRowContext(ctx, `
-		SELECT pages.slug
-		FROM revisions JOIN pages ON revisions.page_id = pages.uuid
-		WHERE pages.uuid=$1
+		SELECT slug
+		FROM revisions
+		WHERE uuid=$1
 		LIMIT 1;
 	`, uuid).Scan(&slug)
 	if err != nil {
@@ -46,9 +46,9 @@ func GetRevisionFilename(ctx context.Context, db *sql.DB, dataDir string, uuid u
 func GetSnapshotFilename(ctx context.Context, db *sql.DB, dataDir string, uuid uuid.UUID) (string, error) {
 	var slug string
 	err := db.QueryRowContext(ctx, `
-		SELECT pages.slug
-		FROM snapshots JOIN pages ON snapshots.page = pages.uuid
-		WHERE pages.uuid=$1
+		SELECT revisions.slug
+		FROM snapshots JOIN revisions ON snapshots.revision = revisions.uuid
+		WHERE snapshots.uuid=$1
 		LIMIT 1;
 	`, uuid).Scan(&slug)
 	if err != nil {

@@ -3,7 +3,6 @@ package requests
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"wiki/database"
 	wikierrors "wiki/errors"
 	"wiki/filesystem"
@@ -205,8 +204,13 @@ func GetRevision(ctx context.Context, db *sql.DB, dataDir string, revId string) 
 		return utils.Revision{}, wikierrors.PageDeleted()
 	}
 	rev.PageId = *revInfo.PageId
-	rev.Name = pageInfo.Name
 	rev.RevDateTime = *revInfo.DateTime
+	rev.Author = *revInfo.Author
+	rev.Slug = revInfo.Slug
+	rev.Name = revInfo.Name
+	rev.ArchiveDate = revInfo.ArchiveDate
+	rev.DeletedAt = revInfo.DeletedAt
+
 
 	rev.Content, err = utils.GetContentAtRevision(ctx, db, dataDir, rev.PageId, rev.UUID)
 	if err != nil {
@@ -224,7 +228,6 @@ func GetRevisions(ctx context.Context, db *sql.DB, pageId string, ind int, count
 		return nil, wikierrors.PageNotFound()
 	}
 	if err != nil {
-		fmt.Printf("error: GetPageUUID\n")
 		return nil, wikierrors.DatabaseError(err)
 	}
 

@@ -152,10 +152,10 @@ func PostPageRevision(c *gin.Context) {
 		return
 	}
 
-	fileHeader, err := c.FormFile("new_page")
+	fileHeader, err := c.FormFile("new_content")
 	if err != nil {
 		if err == http.ErrMissingFile {
-            c.JSON(http.StatusBadRequest, gin.H{"error": "new_page file is required"})
+            c.JSON(http.StatusBadRequest, gin.H{"error": "new_content file is required"})
             return
         }
         c.JSON(http.StatusBadRequest, gin.H{"error": "invalid file upload: " + err.Error()})
@@ -177,7 +177,11 @@ func PostPageRevision(c *gin.Context) {
 	writer.WriteField("page_id", c.PostForm("page_id"))
 	writer.WriteField("author", c.PostForm("author"))
 
-	dstPart, err := writer.CreateFormFile("new_page", fileHeader.Filename)
+	writer.WriteField("slug", c.PostForm("slug"))
+	writer.WriteField("name", c.PostForm("name"))
+	writer.WriteField("archive_date", c.PostForm("archive_date"))
+
+	dstPart, err := writer.CreateFormFile("new_content", fileHeader.Filename)
 	if err != nil {
 		writer.Close()
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "cannot create form file part"})
