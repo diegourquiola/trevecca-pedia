@@ -2,6 +2,8 @@ package handlers
 
 import (
 	"context"
+	"database/sql"
+	"errors"
 	"io"
 	"net/http"
 	"time"
@@ -216,7 +218,12 @@ func NewRevisionHandler(c *gin.Context) {
 
 	pageId, err := database.GetUUID(ctx, db, revReq.PageId)
 	if err != nil {
-		werr := wikierrors.DatabaseError(err)
+		var werr wikierrors.WikiError
+		if errors.Is(err, sql.ErrNoRows) {
+			werr = wikierrors.PageNotFound()
+		} else {
+			werr = wikierrors.DatabaseError(err)
+		}
 		c.AbortWithStatusJSON(werr.Code, gin.H{
 			"error": werr.Details,
 		})
@@ -224,7 +231,12 @@ func NewRevisionHandler(c *gin.Context) {
 	}
 	pageInfo, err := database.GetPageInfo(ctx, db, pageId)
 	if err != nil {
-		werr := wikierrors.DatabaseError(err)
+		var werr wikierrors.WikiError
+		if errors.Is(err, sql.ErrNoRows) {
+			werr = wikierrors.PageNotFound()
+		} else {
+			werr = wikierrors.DatabaseError(err)
+		}
 		c.AbortWithStatusJSON(werr.Code, gin.H{
 			"error": werr.Details,
 		})

@@ -112,6 +112,7 @@ func DeletePage(ctx context.Context, db *sql.DB, dataDir string, delReq utils.De
 	if err != nil {
 		return wikierrors.InternalError(err)
 	}
+	defer tx.Rollback()
 
 	var deletedAt *time.Time
 	err = tx.QueryRowContext(ctx, `
