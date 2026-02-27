@@ -1,12 +1,12 @@
 package image
 
 import (
-	"api-layer/config"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
 	"time"
+	"web/config"
 
 	"github.com/gin-gonic/gin"
 )

@@ -2,7 +2,6 @@ package main
 
 import (
 	"api-layer/config"
-	"api-layer/handlers/image"
 	"api-layer/handlers/search"
 	"api-layer/handlers/wiki"
 	"fmt"
@@ -26,8 +25,6 @@ func main() {
 	r.POST("/v1/wiki/pages/:id/revisions", wiki.PostPageRevision)
 
 	r.GET("/v1/search/search", search.SearchRequest)
-
-	r.GET("/image/*id", image.GetImage)
 
 	port := config.GetEnv("API_LAYER_PORT", "2745")
 	r.Run(fmt.Sprintf(":%s", port))

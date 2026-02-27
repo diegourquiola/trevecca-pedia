@@ -10,7 +10,7 @@ import (
 
 var WikiURL string
 var SearchURL string
-var apiURL string
+var ImageServiceURL string
 
 func init() {
 	if err := godotenv.Load(); err != nil {
@@ -20,6 +20,7 @@ func init() {
 	apiURL := GetEnv("API_LAYER_URL", "http://127.0.0.1:2745")
 	WikiURL = fmt.Sprintf("%s/v1/wiki", apiURL)
 	SearchURL = fmt.Sprintf("%s/v1/search", apiURL)
+	ImageServiceURL = GetEnv("IMAGE_SERVICE_URL", "https://treveccabuddy.tp-images.workers.dev")
 }
 
 func GetEnv(key, fallback string) string {
