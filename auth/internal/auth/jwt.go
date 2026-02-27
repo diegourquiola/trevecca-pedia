@@ -70,7 +70,7 @@ func (j *JWTService) ValidateToken(tokenString string) (*Claims, error) {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return j.secret, nil
-	})
+	}, jwt.WithExpirationRequired()) // reject tokens that have no exp claim
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse token: %w", err)
@@ -90,10 +90,9 @@ func (j *JWTService) ValidateToken(tokenString string) (*Claims, error) {
 		return nil, fmt.Errorf("invalid audience")
 	}
 
-	// Verify expiration
-	if claims.ExpiresAt != nil && claims.ExpiresAt.Before(time.Now()) {
-		return nil, fmt.Errorf("token expired")
-	}
+	// Expiration is validated by ParseWithClaims + WithExpirationRequired above.
+	// Do NOT add a manual "if claims.ExpiresAt != nil" check — the != nil guard
+	// silently accepts tokens with no exp claim.
 
 	return claims, nil
 }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"api-layer/config"
 
@@ -41,7 +40,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		tokenString := parts[1]
 		claims, err := validateToken(tokenString)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid or expired token"})
 			c.Abort()
 			return
 		}
@@ -93,7 +92,7 @@ func validateToken(tokenString string) (*Claims, error) {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
 		return []byte(secret), nil
-	})
+	}, jwt.WithExpirationRequired()) // reject tokens that have no exp claim
 
 	if err != nil {
 		return nil, fmt.Errorf("invalid token")
@@ -113,10 +112,6 @@ func validateToken(tokenString string) (*Claims, error) {
 		return nil, fmt.Errorf("invalid audience")
 	}
 
-	// Verify expiration
-	if claims.ExpiresAt != nil && claims.ExpiresAt.Before(time.Now()) {
-		return nil, fmt.Errorf("token expired")
-	}
-
+	// Expiration validated by ParseWithClaims + WithExpirationRequired above.
 	return claims, nil
 }
