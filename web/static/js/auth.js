@@ -17,9 +17,9 @@ function getUser() {
     }
 }
 
-function saveAuth(token, user) {
-    // token is now an HttpOnly cookie set by the server — JS cannot read it.
-    // Store only the non-sensitive user data for UI rendering.
+function saveAuth(user) {
+    // The JWT is stored in an HttpOnly cookie by the server — JS cannot read or set it.
+    // Store only non-sensitive user data (email, roles) for UI rendering.
     sessionStorage.setItem('auth_user', JSON.stringify(user))
 }
 
@@ -49,7 +49,7 @@ async function login(email, password) {
     }
     // The token is set as an HttpOnly cookie by the server proxy.
     // We only receive and store the user data for UI rendering.
-    saveAuth('', data.user)
+    saveAuth(data.user)
     return data
 }
 
@@ -74,7 +74,7 @@ async function register(email, password) {
         throw new Error(data.error || 'Registration failed')
     }
     // The token is set as an HttpOnly cookie by the server proxy.
-    saveAuth('', data.user)
+    saveAuth(data.user)
     return data
 }
 
@@ -97,7 +97,7 @@ async function fetchProfile() {
             return
         }
         const user = await resp.json()
-        saveAuth('', user)
+        saveAuth(user)
         populateProfile(user)
         showProfileState('content')
     } catch {
@@ -156,7 +156,7 @@ async function updateNavAuth() {
         const resp = await fetch('/auth/me')
         if (resp.ok) {
             user = await resp.json()
-            saveAuth('', user)
+            saveAuth(user)
             _applyNavUser(user)
             return
         }
