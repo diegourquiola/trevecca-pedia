@@ -4,9 +4,9 @@ services:
     container_name: trevecca-auth-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: auth
-      POSTGRES_USER: auth_user
-      POSTGRES_PASSWORD: authpass
+      POSTGRES_USER: ${POSTGRES_USER:-auth_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}
+      POSTGRES_DB: ${POSTGRES_DB:-auth}
     volumes:
       - auth-data:/var/lib/postgresql/data
       - ./init:/docker-entrypoint-initdb.d
