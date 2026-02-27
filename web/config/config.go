@@ -10,15 +10,16 @@ import (
 
 var WikiURL string
 var SearchURL string
+var apiURL string
 
 func init() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("Warning: .env file not found, using defaults")
 	}
 
-	apiURL := GetEnv("API_LAYER_URL", "http://127.0.0.1:2745/v1")
-	WikiURL = fmt.Sprintf("%s/wiki", apiURL)
-	SearchURL = fmt.Sprintf("%s/search", apiURL)
+	apiURL := GetEnv("API_LAYER_URL", "http://127.0.0.1:2745")
+	WikiURL = fmt.Sprintf("%s/v1/wiki", apiURL)
+	SearchURL = fmt.Sprintf("%s/v1/search", apiURL)
 }
 
 func GetEnv(key, fallback string) string {

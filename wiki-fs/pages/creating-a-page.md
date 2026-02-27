@@ -17,11 +17,11 @@ The current process is in development, but web page text is stored in a static f
 ## Headings
 
 # Heading 1
+`# Heading 1`
 ## Heading 2
+`## Heading 2`
 ### Heading 3
-#### Heading 4
-##### Heading 5
-###### Heading 6
+`### Heading 3`
 
 ## Code
 
@@ -38,7 +38,11 @@ function hello() {
 
 [Link text](https://example.com)
 
-![Alt text](images/WIP.png)
+`[Link text](https://example.com)`
+
+![Alt text](/image/work-in-progress-icon.jpg)
+
+`![Alt text](/image/IMAGE-NAME.EXTENSION)`
 
 ## Lists
 
@@ -60,14 +64,10 @@ function hello() {
 ## Horizontal Rule
 
 ---
+`---`
 
 ## Tables
 
 | Header 1 | Header 2 |
 |----------|----------|
 | Cell 1   | Cell 2   |
-
-
-## Images
-
-![alt text](http://localhost:8080/images/WIP.png)

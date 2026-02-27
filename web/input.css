@@ -13,13 +13,18 @@
 
 @layer base {
     #entry h1 {
-        font-size: 5em;
+        font-size: 4em;
     }
     #entry h2 {
         font-size: 2em;
         padding-top: 1em;
         margin-bottom: 0.5em;
         border-bottom: 1px solid;
+    }
+    #entry h3 {
+        font-size: 1.5em;
+        padding-top: 0.75em;
+        margin-bottom: 0.4em;
     }
     #entry p {
         padding: 1em 0em;
@@ -37,5 +42,64 @@
     }
     #entry a {
         text-decoration: underline;
+        color: purple;
+        @apply dark:text-violet-400;
+    }
+    #entry img {
+        max-width: 100%;
+        @apply dark:bg-gray-800;
+    }
+    #entry code {
+        font-family: monospace;
+        display: flex;
+        background-color: #f1f1f1;
+        padding: 5px;
+        font-size: 105%;
+        @apply dark:bg-gray-800 dark:text-gray-200;
+    }
+    #entry pre {
+        display: block;
+        font-family: monospace;
+        white-space: pre;
+        margin: 1em 0;
+    }
+    #entry ul {
+        list-style-type: disc;
+        padding-left: 2em;
+        padding-top: 0.5em;
+        padding-bottom: 0.5em;
+    }
+    #entry ol {
+        list-style-type: decimal;
+        padding-left: 2em;
+        padding-top: 0.5em;
+        padding-bottom: 0.5em;
+    }
+    #entry li {
+        padding: 0.25em 0em;
+        line-height: 1.6;
+    }
+    #entry li::marker {
+        @apply text-gray-500 dark:text-gray-400;
+    }
+    #entry blockquote {
+        border-left: 4px solid #d1d5db;
+        padding: 0.5em 1em;
+        margin: 1em 0em;
+        font-style: italic;
+        @apply text-gray-600 dark:text-gray-400 dark:border-l-gray-600;
+    }
+
+    /* Global dark mode text defaults */
+    .dark #entry {
+        color: #e5e7eb; /* gray-200 — main body text */
+    }
+    .dark #entry h2 {
+        border-bottom-color: #e5e7eb;
+    }
+    .dark #entry table,
+    .dark #entry td,
+    .dark #entry th {
+        border-color: #e5e7eb;
     }
 }

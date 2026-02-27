@@ -1,8 +1,9 @@
 package main
 
 import (
+	"net/http/httputil"
+	"net/url"
 	"web/config"
-	"web/images"
 	"web/search"
 	"web/wiki"
 
@@ -18,7 +19,14 @@ func main() {
 	r.GET("/", wiki.GetHome)
 	r.GET("/pages/:id", wiki.GetPage)
 	r.GET("/search", search.GetSearchPage)
-	r.GET("/images/:filename", images.GetImage)
+
+	// Proxy /image/* in markdown to api-layer
+	apiURL, _ := url.Parse("http://localhost:2745")
+	proxy := httputil.NewSingleHostReverseProxy(apiURL)
+
+	r.GET("/image/*id", func(c *gin.Context) {
+		proxy.ServeHTTP(c.Writer, c.Request)
+	})
 
 	port := config.GetEnv("WEB_SERVICE_PORT", "8080")
 	r.Run(":" + port)

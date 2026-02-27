@@ -1,5 +1,7 @@
 # Dan Boone  
 
+![A picture of Dan Boone](/image/people/staff/Dan-Boone.png)
+
 **Dan L. Boone** (born 1947 ? – present) is an American Nazarene minister, author and the eleventh president of Trevecca Nazarene University in Nashville, Tennessee. He has served as university president since July 2005, guiding significant growth in enrollment, campus facilities, academic programs, and athletic competition.
 
 ---
