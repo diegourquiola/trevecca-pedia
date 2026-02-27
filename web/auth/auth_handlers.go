@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"log"
 	"web/templates/auth"
 	"web/templates/components"
 
@@ -10,11 +11,15 @@ import (
 func GetLoginPage(c *gin.Context) {
 	content := auth.AuthPage()
 	page := components.Page("Log In", content)
-	page.Render(c.Request.Context(), c.Writer)
+	if err := page.Render(c.Request.Context(), c.Writer); err != nil {
+		log.Printf("error rendering login page: %v", err)
+	}
 }
 
 func GetProfilePage(c *gin.Context) {
 	content := auth.ProfilePage()
 	page := components.Page("Profile", content)
-	page.Render(c.Request.Context(), c.Writer)
+	if err := page.Render(c.Request.Context(), c.Writer); err != nil {
+		log.Printf("error rendering profile page: %v", err)
+	}
 }

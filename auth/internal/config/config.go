@@ -47,6 +47,14 @@ func Load() (*Config, error) {
 	return config, nil
 }
 
+// String redacts sensitive fields so Config can be safely logged.
+func (c Config) String() string {
+	return fmt.Sprintf(
+		"{Port:%s DatabaseURL:[REDACTED] JWTSecret:[REDACTED] JWTExpHours:%d CORSOrigins:%v DevSeed:%t}",
+		c.Port, c.JWTExpHours, c.CORSOrigins, c.DevSeed,
+	)
+}
+
 func getEnv(key, defaultValue string) string {
 	if value := os.Getenv(key); value != "" {
 		return value
