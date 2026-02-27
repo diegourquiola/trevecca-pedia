@@ -39,14 +39,20 @@ go mod download
 
 ### 3. Start the Database
 
-From the `auth-db` directory, start the auth database:
+From the `auth-db` directory, set up and start the auth database:
 
 ```bash
 cd ../auth-db
+cp .env.example .env
+```
+
+Edit `auth-db/.env` and set a real password for `POSTGRES_PASSWORD` (the compose file will refuse to start without it). Then:
+
+```bash
 docker compose up -d
 ```
 
-This starts `auth-db` (PostgreSQL) on port `5433` with no extra configuration needed. Wait for it to be healthy:
+This starts `auth-db` (PostgreSQL) on port `5433`. Wait for it to be healthy:
 
 ```bash
 docker compose ps
@@ -72,11 +78,11 @@ The example has the right values for local development. If you want the dev user
 air .
 ```
 
-**Alternative** — if you prefer not to use a `.env` file, you can pass the variables inline:
+**Alternative** — if you prefer not to use a `.env` file, you can pass the variables inline. Replace `<your-db-password>` with the value you set for `POSTGRES_PASSWORD` in `auth-db/.env`:
 
 ```bash
 PORT=8083 \
-DATABASE_URL="postgres://auth_user:authpass@localhost:5433/auth?sslmode=disable" \
+DATABASE_URL="postgres://auth_user:<your-db-password>@localhost:5433/auth?sslmode=disable" \
 JWT_SECRET="dev-secret-key-change-in-production-please" \
 JWT_EXP_HOURS=24 \
 CORS_ORIGINS="http://localhost:3000,http://localhost:5173,http://localhost:8080" \
@@ -243,7 +249,7 @@ Or run the automated smoke test script:
 ## Troubleshooting
 
 **Database connection fails**
-- Check the container is running: `docker compose ps` (from `auth/`)
+- Check the container is running: `docker compose ps` (from `auth-db/`)
 - Check port 5433 is not in use: `lsof -i :5433`
 
 **Port 8083 already in use**
