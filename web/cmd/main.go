@@ -25,6 +25,7 @@ func main() {
 	r.POST("/auth/login", auth.PostLogin)
 	r.POST("/auth/register", auth.PostRegister)
 	r.GET("/auth/me", auth.GetMe)
+	r.POST("/auth/logout", auth.PostLogout)
 
 	port := config.GetEnv("WEB_SERVICE_PORT", "8080")
 	r.Run(":" + port)

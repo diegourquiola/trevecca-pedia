@@ -1,11 +1,13 @@
 // Auth utilities for TreveccaPedia
-
-function getToken() {
-    return localStorage.getItem('auth_token')
-}
+//
+// Token security model:
+//   The JWT is stored in an HttpOnly cookie set by the web server — JavaScript
+//   cannot read it, which prevents XSS-based token theft.
+//   Non-sensitive user info (email, roles) is cached in sessionStorage for UI
+//   rendering only. sessionStorage is cleared when the tab/session closes.
 
 function getUser() {
-    var user = localStorage.getItem('auth_user')
+    var user = sessionStorage.getItem('auth_user')
     if (!user) return null
     try {
         return JSON.parse(user)
@@ -16,13 +18,13 @@ function getUser() {
 }
 
 function saveAuth(token, user) {
-    localStorage.setItem('auth_token', token)
-    localStorage.setItem('auth_user', JSON.stringify(user))
+    // token is now an HttpOnly cookie set by the server — JS cannot read it.
+    // Store only the non-sensitive user data for UI rendering.
+    sessionStorage.setItem('auth_user', JSON.stringify(user))
 }
 
 function clearAuth() {
-    localStorage.removeItem('auth_token')
-    localStorage.removeItem('auth_user')
+    sessionStorage.removeItem('auth_user')
 }
 
 async function login(email, password) {
@@ -45,7 +47,9 @@ async function login(email, password) {
     if (!resp.ok) {
         throw new Error(data.error || 'Invalid email or password')
     }
-    saveAuth(data.accessToken, data.user)
+    // The token is set as an HttpOnly cookie by the server proxy.
+    // We only receive and store the user data for UI rendering.
+    saveAuth('', data.user)
     return data
 }
 
@@ -69,31 +73,31 @@ async function register(email, password) {
     if (!resp.ok) {
         throw new Error(data.error || 'Registration failed')
     }
-    saveAuth(data.accessToken, data.user)
+    // The token is set as an HttpOnly cookie by the server proxy.
+    saveAuth('', data.user)
     return data
 }
 
-function logout() {
+async function logout() {
+    // The token is in an HttpOnly cookie — only the server can remove it.
+    try {
+        await fetch('/auth/logout', { method: 'POST' })
+    } catch {}
     clearAuth()
     window.location.href = '/'
 }
 
 async function fetchProfile() {
-    const token = getToken()
-    if (!token) {
-        showProfileState('unauthenticated')
-        return
-    }
     try {
-        const resp = await fetch('/auth/me', {
-            headers: { 'Authorization': 'Bearer ' + token }
-        })
+        // Cookie is sent automatically by the browser — no Authorization header needed.
+        const resp = await fetch('/auth/me')
         if (!resp.ok) {
             clearAuth()
             showProfileState('unauthenticated')
             return
         }
         const user = await resp.json()
+        saveAuth('', user)
         populateProfile(user)
         showProfileState('content')
     } catch {
@@ -140,21 +144,42 @@ function populateProfile(user) {
     }
 }
 
-function updateNavAuth() {
+async function updateNavAuth() {
+    var user = getUser()
+    if (user) {
+        _applyNavUser(user)
+        return
+    }
+    // sessionStorage is empty (new tab / hard refresh) but cookie may still be valid.
+    // Silently fetch user info from the server.
+    try {
+        const resp = await fetch('/auth/me')
+        if (resp.ok) {
+            user = await resp.json()
+            saveAuth('', user)
+            _applyNavUser(user)
+            return
+        }
+    } catch {}
+    _applyNavGuest()
+}
+
+function _applyNavUser(user) {
     const loginLink = document.getElementById('nav-login-link')
     const userMenu = document.getElementById('nav-user-menu')
     const userEmail = document.getElementById('nav-user-email')
     if (!loginLink || !userMenu) return
+    loginLink.classList.add('hidden')
+    userMenu.classList.remove('hidden')
+    if (userEmail) userEmail.textContent = user.email || ''
+}
 
-    const user = getUser()
-    if (user) {
-        loginLink.classList.add('hidden')
-        userMenu.classList.remove('hidden')
-        if (userEmail) userEmail.textContent = user.email || ''
-    } else {
-        loginLink.classList.remove('hidden')
-        userMenu.classList.add('hidden')
-    }
+function _applyNavGuest() {
+    const loginLink = document.getElementById('nav-login-link')
+    const userMenu = document.getElementById('nav-user-menu')
+    if (!loginLink || !userMenu) return
+    loginLink.classList.remove('hidden')
+    userMenu.classList.add('hidden')
 }
 
 function toggleUserDropdown() {

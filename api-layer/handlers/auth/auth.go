@@ -5,9 +5,14 @@ import (
 	"bytes"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
+
+// proxyClient is used for all calls to the auth service.
+// A 10-second timeout prevents goroutine leaks if the auth service hangs.
+var proxyClient = &http.Client{Timeout: 10 * time.Second}
 
 // PostLogin proxies POST /v1/auth/login → auth service POST /auth/login
 func PostLogin(c *gin.Context) {
@@ -17,7 +22,7 @@ func PostLogin(c *gin.Context) {
 		return
 	}
 
-	res, err := http.Post(config.AuthServiceURL+"/auth/login", "application/json", bytes.NewReader(body))
+	res, err := proxyClient.Post(config.AuthServiceURL+"/auth/login", "application/json", bytes.NewReader(body))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{"error": "auth service unavailable"})
 		return
@@ -41,7 +46,7 @@ func PostRegister(c *gin.Context) {
 		return
 	}
 
-	res, err := http.Post(config.AuthServiceURL+"/auth/register", "application/json", bytes.NewReader(body))
+	res, err := proxyClient.Post(config.AuthServiceURL+"/auth/register", "application/json", bytes.NewReader(body))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{"error": "auth service unavailable"})
 		return
@@ -60,7 +65,7 @@ func PostRegister(c *gin.Context) {
 // GetMe proxies GET /v1/auth/me → auth service GET /auth/me
 // The Authorization header is forwarded so the auth service can validate the JWT.
 func GetMe(c *gin.Context) {
-	req, err := http.NewRequest(http.MethodGet, config.AuthServiceURL+"/auth/me", nil)
+	req, err := http.NewRequestWithContext(c.Request.Context(), http.MethodGet, config.AuthServiceURL+"/auth/me", nil)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to create request"})
 		return
@@ -70,7 +75,7 @@ func GetMe(c *gin.Context) {
 		req.Header.Set("Authorization", authHeader)
 	}
 
-	res, err := http.DefaultClient.Do(req)
+	res, err := proxyClient.Do(req)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{"error": "auth service unavailable"})
 		return
