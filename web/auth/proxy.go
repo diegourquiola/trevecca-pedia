@@ -40,13 +40,17 @@ func setAuthCookie(c *gin.Context, token string) {
 }
 
 // clearAuthCookie expires the auth cookie, effectively logging the user out server-side.
+// The Secure flag must match the original cookie's attributes so all browsers (including
+// Safari) correctly identify and delete the cookie.
 func clearAuthCookie(c *gin.Context) {
+	secure := config.GetEnv("COOKIE_SECURE", "false") == "true"
 	http.SetCookie(c.Writer, &http.Cookie{
 		Name:     authCookieName,
 		Value:    "",
 		Path:     "/",
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
+		Secure:   secure,
 		MaxAge:   -1,
 	})
 }
@@ -77,24 +81,28 @@ func handleAuthPost(c *gin.Context, upstreamPath string) {
 	// On success, extract the token, set it as HttpOnly cookie, return only user data.
 	if res.StatusCode == http.StatusOK || res.StatusCode == http.StatusCreated {
 		var parsed authServiceResponse
-		if err := json.Unmarshal(respBody, &parsed); err == nil && parsed.AccessToken != "" {
-			setAuthCookie(c, parsed.AccessToken)
-			c.Data(res.StatusCode, "application/json", mustMarshal(map[string]json.RawMessage{
-				"user": parsed.User,
-			}))
+		if jsonErr := json.Unmarshal(respBody, &parsed); jsonErr != nil || parsed.AccessToken == "" {
+			// Upstream returned 2xx but we cannot extract a token — this is unexpected.
+			// Do NOT fall through and send the raw body (it may contain the accessToken).
+			// Fail closed: return 502 so the browser never receives the raw JWT.
+			log.Printf("error: could not extract token from auth response at %s: unmarshal_err=%v token_present=%v",
+				upstreamPath, jsonErr, parsed.AccessToken != "")
+			c.AbortWithStatusJSON(http.StatusBadGateway, gin.H{"error": "invalid response from auth service"})
 			return
 		}
-		// Couldn't extract token — log and fall through to pass the raw response
-		log.Printf("warn: could not extract token from auth response at %s", upstreamPath)
+		setAuthCookie(c, parsed.AccessToken)
+		userJSON, marshalErr := json.Marshal(map[string]json.RawMessage{"user": parsed.User})
+		if marshalErr != nil {
+			log.Printf("error: could not marshal user response at %s: %v", upstreamPath, marshalErr)
+			c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+			return
+		}
+		c.Data(res.StatusCode, "application/json", userJSON)
+		return
 	}
 
 	// Error response — pass through as-is (400, 401, 403, 409, 500, etc.)
 	c.Data(res.StatusCode, res.Header.Get("Content-Type"), respBody)
-}
-
-func mustMarshal(v any) []byte {
-	b, _ := json.Marshal(v)
-	return b
 }
 
 // PostLogin proxies POST /auth/login → API layer POST /v1/auth/login
