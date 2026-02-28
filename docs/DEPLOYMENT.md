@@ -53,14 +53,17 @@ Deploy in this order to avoid circular dependencies:
 
 1. **Wiki Service** (wiki) - Deploy first; will receive database URL when attached
 2. **Database** (wiki-db) - Create and attach to wiki service
-3. **API Layer** (api-layer) - Deploy with wiki URL only initially
-4. **Search Service** (search) - Depends on API layer for data (can now fetch)
-5. **API Layer** (api-layer) - Redeploy with search URL added
-6. **Web Frontend** (web) - Depends on fully configured API layer
+3. **Auth Service** (auth) - Deploy first; will receive database URL when attached
+4. **Auth Database** (auth-db) - Attach shared Postgres app and apply schema
+5. **API Layer** (api-layer) - Deploy with wiki + auth URLs only initially
+6. **Search Service** (search) - Depends on API layer for data (can now fetch)
+7. **API Layer** (api-layer) - Redeploy with search URL added
+8. **Web Frontend** (web) - Depends on fully configured API layer
 
 **Why this order?** 
 - The wiki service uses `DATABASE_URL` which is automatically set when the database is attached via `fly postgres attach`. This allows us to deploy the wiki service first without needing database credentials upfront.
-- The search service needs the API layer URL to fetch page data, but the API layer also needs the search service URL to proxy requests. By deploying the API layer twice (steps 3 and 5), we break this circular dependency. The web frontend is deployed last as it's stateless and only needs the public API layer URL.
+- The auth service uses `DATABASE_URL` the same way. After attaching Postgres, apply the auth schema (tables + whitelist).
+- The search service needs the API layer URL to fetch page data, but the API layer also needs the search service URL to proxy requests. By deploying the API layer twice (steps 5 and 7), we break this circular dependency. The web frontend is deployed last as it's stateless and only needs the public API layer URL.
 
 ## 1. Deploy Wiki Service
 
@@ -113,9 +116,47 @@ fly status --app trevecca-pedia-db
 
 **Note:** The 2-machine setup provides automatic failover. If the primary fails, the replica takes over. All connection strings use the internal hostname which automatically routes to the current primary. The `fly postgres attach` command automatically sets the `DATABASE_URL` secret on the wiki service.
 
-## 3. Deploy API Layer (Initial)
+## 3. Deploy Auth Service
 
-**First deployment** - only configure wiki service URL. Search service URL will be added in step 5.
+Deploy the auth service first. Like the wiki service, it expects `DATABASE_URL` to be provided by Fly after Postgres is attached.
+
+```bash
+cd auth
+
+# Create the app
+fly apps create trevecca-pedia-auth
+
+# Set required secrets
+# IMPORTANT: This must match the JWT_SECRET used by api-layer
+# Use this to get a string for the secret:
+# openssl rand -base64 32
+fly secrets set JWT_SECRET="<shared-jwt-secret>" --app trevecca-pedia-auth
+
+# Deploy
+fly deploy
+```
+
+**Note:** The auth service will start but won't be able to handle requests until the database is attached in step 4.
+
+## 4. Configure Auth Database
+
+The auth database schema lives in `auth-db/init/` and is applied to Fly Postgres (same pattern as `wiki-db/`).
+
+This guide assumes the shared Postgres app is `trevecca-pedia-db` (created in step 2).
+
+```bash
+# Attach Postgres (creates the database + sets DATABASE_URL on auth app)
+fly postgres attach trevecca-pedia-db --app trevecca-pedia-auth
+
+# Apply auth schema (tables + whitelist)
+cd ../auth-db
+chmod +x setup-db.sh
+./setup-db.sh trevecca-pedia-db trevecca_pedia_auth
+```
+
+## 5. Deploy API Layer (Initial)
+
+**First deployment** - configure wiki + auth service URLs only. Search service URL will be added in step 7.
 
 ```bash
 cd api-layer
@@ -126,13 +167,20 @@ fly apps create trevecca-pedia-api
 # Set wiki service URL only (external fly.io HTTP address)
 fly secrets set WIKI_SERVICE_URL="https://trevecca-pedia-wiki.fly.dev" --app trevecca-pedia-api
 
+# Set auth service URL (external fly.io HTTP address)
+fly secrets set AUTH_SERVICE_URL="https://trevecca-pedia-auth.fly.dev" --app trevecca-pedia-api
+
+# Set JWT_SECRET so api-layer can validate tokens
+# IMPORTANT: Must match auth service JWT_SECRET
+fly secrets set JWT_SECRET="<shared-jwt-secret>" --app trevecca-pedia-api
+
 # Deploy
 fly deploy
 ```
 
-**Note:** The API layer will start but search functionality won't work yet. We'll add the search service URL in step 5 after the search service is deployed.
+**Note:** The API layer will start but search functionality won't work yet. We'll add the search service URL in step 7 after the search service is deployed.
 
-## 4. Deploy Search Service
+## 6. Deploy Search Service
 
 Now that the API layer is running, we can deploy the search service which needs the API layer URL to fetch page data.
 
@@ -161,7 +209,7 @@ fly deploy
 
 **Note:** On first startup, the search service will automatically fetch all pages from the API layer and build the search index. This may take a few minutes depending on the number of pages.
 
-## 5. Deploy API Layer (Final - with Search URL)
+## 7. Deploy API Layer (Final - with Search URL)
 
 **Second deployment** - add the search service URL so the API layer can proxy search requests.
 
@@ -177,7 +225,7 @@ fly deploy
 
 **Done!** All services are now fully configured and communicating properly.
 
-## 6. Deploy Web Frontend
+## 8. Deploy Web Frontend
 
 The web frontend is a stateless Go application with Tailwind CSS that serves the user interface.
 
@@ -323,11 +371,21 @@ du -sh /index
 - `WIKI_SERVICE_PORT` - Service port (9454)
 - `WIKI_DATA_DIR` - Data directory (/data)
 
+### Auth Service
+- `DATABASE_URL` - Database url (secret)
+- `PORT` - Service port (8083)
+- `JWT_SECRET` - JWT signing key (secret; must match api-layer)
+- `JWT_EXP_HOURS` - Token expiration (hours)
+- `CORS_ORIGINS` - Allowed origins (optional; secret)
+- `DEV_SEED` - Dev user seeding (false in prod)
+
 ### Search Service
 - `API_LAYER_URL` - API layer URL (secret)
-- `SEARCH_INDEX_DIR` - Index directory (/index)
+- `INDEX_DIR` - Index directory (/index)
 
 ### API Layer
 - `WIKI_SERVICE_URL` - Wiki service URL (secret)
 - `SEARCH_SERVICE_URL` - Search service URL (secret)
+- `AUTH_SERVICE_URL` - Auth service URL (secret)
+- `JWT_SECRET` - JWT verification key (secret; must match auth service)
 - `API_LAYER_PORT` - Service port (2745)

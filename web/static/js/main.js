@@ -52,4 +52,12 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     })
 })
 
+// Initialize auth state in navigation
+updateNavAuth()
+
+// If on profile page, fetch profile data
+if (document.getElementById('profile-loading')) {
+    fetchProfile()
+}
+
 console.log('TreveccaPedia - Ready to explore!')

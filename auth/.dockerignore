@@ -1,0 +1,40 @@
+# Git
+.git
+.gitignore
+
+# Environment variables (secrets)
+.env
+.env.local
+.env.*.local
+
+# Development files
+.air.toml
+tmp/
+
+# Build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+auth
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation
+README.md
+docs/
+
+# Test files
+*_test.go

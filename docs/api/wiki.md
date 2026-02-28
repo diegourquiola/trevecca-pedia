@@ -1,5 +1,12 @@
 # Wiki Service
 
+These routes are served by the API layer under `/v1/wiki`.
+
+For web frontend work (browser code): do not call these directly.
+- The API layer requires a `Bearer` JWT for write routes.
+- The JWT is stored as an `HttpOnly` cookie by the web service (`/auth/login`), so browser JavaScript cannot read it and therefore cannot set the `Authorization` header.
+- If you need browser-driven wiki writes, add web-service proxy routes that read the cookie and forward `Authorization: Bearer <cookie>` upstream (same pattern as `GET /auth/me`).
+
 ## Prefix
 
 All routes to the API Layer begin with a version and the service.  
@@ -9,6 +16,11 @@ So, calls to the `wiki` service begin with: `/v1/wiki`
 ---
 
 ## Routes
+
+## Authentication
+
+- Read routes are public.
+- Write routes require `Authorization: Bearer <jwt>` and the JWT must contain the `contributor` role.
 
 ### HTTP `GET` Requests
 
@@ -63,7 +75,7 @@ This is implemented using a multipart form, with the fields being passed in as f
 `author`: author identification  
     - not really implemented yet. using student id for now, but that definitely won't be the actual implementation.  
 `archive_date`: date to mark page as archived/not relevant (if any)  
-    - UTC+0 Time: `YYYY-MM-DD HH:MM:SS`  
+    - Date only: `YYYY-MM-DD`  
     - optional; can be blank;  
 `new_page`: the markdown file with the page content  
 
@@ -91,5 +103,30 @@ This is implemented using a multipart form, with the fields being passed in as f
 `page_id`: the slug (or uuid) of the page being revised  
 `author`: author identification  
     - not really implemented yet. using student email username for now, but that definitely won't be the actual implementation.  
-`new_page`: the markdown file with the new page content  
+`new_content`: the markdown file with the new page content  
 
+---
+
+## Example (Server-to-Server)
+
+The API layer enforces auth on POST routes. If you're calling it from a service (or curl), include the bearer token.
+
+Create a page:
+```bash
+curl -X POST "${API_LAYER_URL:-http://127.0.0.1:2745}/v1/wiki/pages/new" \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "slug=example-page" \
+  -F "name=Example Page" \
+  -F "author=studentid" \
+  -F "archive_date=2026-02-28" \
+  -F "new_page=@./page.md"
+```
+
+Create a revision:
+```bash
+curl -X POST "${API_LAYER_URL:-http://127.0.0.1:2745}/v1/wiki/pages/example-page/revisions" \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "page_id=example-page" \
+  -F "author=username" \
+  -F "new_content=@./page.md"
+```
