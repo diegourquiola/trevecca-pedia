@@ -1,0 +1,122 @@
+--- ../wiki-fs/pages/trevecca-dining.md
++++ ../wiki-fs/pages/trevecca-dining.md
+@@ -0,0 +1,118 @@
++# Trevecca Dining
++
++Dining at Trevecca is provided by Sodexo.  More information about the dining options on campus can be found at the [Sodexo Dining Website](https://trevecca.sodexomyway.com/en-us/).
++
++## Apple Dining Hall
++
++The Apple Dining Hall, located in the Jernigan Student Center, offers endless dining options for anyone on campus. A full salad bar, grilled and homestyle favorites, vegan and vegetarian options, a deli, desserts, and a designated allergy-friendly dining zone are available. Be sure to stop by and grab your favorites!
++
++### Regular Hours
++
++- **Monday - Friday**
++  - **Breakfast:** 07:00 AM - 09:30 AM
++  - **Lunch:** 11:00 AM - 02:00 PM
++  - **Dinner:** 05:00 PM - 08:00 PM
++- **Saturday**
++  - **Brunch:** 10:00 AM - 02:00 PM
++  - **Dinner:** 05:00 PM - 08:00 PM
++- **Sunday**
++  - **Brunch:** 09:00 AM - 02:00 PM
++  - **Dinner:** 05:00 PM - 08:00 PM
++
++**Location:** Jernigan Student Center
++
++**Phone:** (615) 248-1200
++
++**Guest Door Prices:**
++
++- Breakfast: $8.00 plus tax
++- Lunch: $12.00 plus tax
++- Dinner: $12.00 plus tax
++
++**More info and full menu:** [trevecca.sodexomyway.com](https://trevecca.sodexomyway.com/en-us/locations/dining-hall)
++
++
++
++## The Hub
++
++The Hub is a downtown Nashville inspired restaurant located in the lower level of the Jernigan Student Center that caters to anyone who is searching for made to order grill experience. It brings to life a modern vibe and timeless offerings. The classic menu of burgers, chicken tenders, flatbreads and fries provide an upgraded experience from the standard grill.
++
++### Regular Hours
++
++**Monday - Friday**
++
++- 11:00 AM - 10:00 PM
++
++**Saturday - Sunday**
++
++- 11:00 AM - 07:00 PM
++
++**Location:** Jernigan Student Center (Bottom Floor)
++
++**Phone:** (615) 248-1200
++
++**More info and full menu:** [trevecca.sodexomyway.com](https://trevecca.sodexomyway.com/en-us/locations/the-hub)
++
++
++
++## Starbucks
++
++Located in the Bud Robinson Building, Starbucks roasts high-quality, whole bean coffees and sells them along with fresh, rich-brewed, Italian-style espresso beverages, a variety of pastries, confections, and a premium line of Teavana Teas.
++
++For current nutrition and allergen information on Starbucks items, please view [here](https://www.starbucks.com/menu).
++
++Menu offerings may vary.
++
++### Regular Hours
++
++**Monday - Friday**
++
++- 07:00 AM - 04:00 PM
++
++**Saturday**
++
++- Closed
++
++**Sunday**
++
++- 08:00 AM - 03:00 PM
++
++**Location:** Bud Robinson
++
++**Phone:** (615) 248-1200
++
++**More info and full menu:** [trevecca.sodexomyway.com](https://trevecca.sodexomyway.com/en-us/locations/we-proudly-serve-starbucks)
++
++
++
++## Nineteen|01 (Frothy Monkey)
++
++NINETEEN|01 is a specialty coffee shop located in Waggoner Library. The shop serves high-quality, Nashville-roasted whole bean coffees, house-made syrups, and rich espresso beverages. A staple of the Nashville community since 2004,  Frothy Monkey is proud to partner with and support our local community. Nineteen|01 offers a wide variety of hot and iced beverages, baked goods, and to-go sandwiches and salads.
++
++### Regular Hours
++
++**Monday - Thursday**
++
++- 08:00 AM - 08:00 PM
++
++**Friday - Saturday**
++
++- 08:00 AM - 04:00 PM
++
++**Sunday**
++
++- Closed
++
++**Location:** Waggoner Library
++
++**Phone:** (615) 248-1200
++
++**More info and full menu:** [trevecca.sodexomyway.com](https://trevecca.sodexomyway.com/en-us/locations/frothy-monkey)
++
++
++
++## Special Dietary Needs
++
++For those who have special diet requirements due to medical reasons, the food service will work to accommodate your needs. A doctor’s outline of dietary needs is helpful. Inquiries regarding this process should be directed to the Associate Dean of Student Success and/or Coordinator of [Student Disability Services](mailto:disabilityservices@trevecca.edu).
++
++Trays are also available for students on the meal plan who are too ill to attend meals. A note from the resident assistant (RA) or resident director (RD) is necessary for this service.
+\ No newline at end of file

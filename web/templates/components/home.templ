@@ -79,7 +79,7 @@ templ PageList(pages []utils.PageInfoPrev) {
 					</h3>
 					<div class="mt-1 text-sm text-neutral-500 dark:text-neutral-400 line-clamp-2">
                         <!-- { page.Preview } -->
-						@templ.Raw(utils.ToHTML(page.Preview))
+						@templ.Raw(utils.ToHTMLPreview(page.Preview))
 					</div>
 				</div>
 			</a>

@@ -89,7 +89,7 @@ templ ResultsList(pages []utils.PageInfoPrev) {
 								{ page.Name }
 							</h3>
 							<div class="mt-1 text-sm text-neutral-500 dark:text-neutral-400 line-clamp-2">
-                                @templ.Raw(utils.ToHTML(page.Preview))
+                                @templ.Raw(utils.ToHTMLPreview(page.Preview))
 							</div>
 							<div class="mt-2 flex items-center gap-2 text-xs text-neutral-400 dark:text-neutral-500">
 								<svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
