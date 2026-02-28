@@ -17,7 +17,9 @@ templ Page(title string, children ...templ.Component) {
 				}
 			</script>
 		</head>
-		<body class="min-h-screen flex flex-col bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 transition-colors duration-300">
+		<body
+			class="min-h-screen flex flex-col bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 transition-colors duration-300"
+		>
 			@Navigation()
 			<main class="flex-1">
 				for _, child := range children {
@@ -25,6 +27,7 @@ templ Page(title string, children ...templ.Component) {
 				}
 			</main>
 			@Footer()
+			<script src="/static/js/auth.js"></script>
 			<script src="/static/js/main.js"></script>
 		</body>
 	</html>

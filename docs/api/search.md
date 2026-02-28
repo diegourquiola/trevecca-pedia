@@ -1,5 +1,11 @@
 # Search Service
 
+These routes are served by the API layer under `/v1/search`.
+
+For web frontend work (browser code): you typically do not call these directly.
+- The web server already proxies search for the UI by calling the API layer from server-side Go.
+- If you do call the API layer from the browser, these endpoints are public and do not require auth.
+
 ## Prefix
 
 All routes to the API Layer begin with a version and the service.  
@@ -16,6 +22,8 @@ So, calls to the `search` service begin with: `/v1/search`
 | ---       | ---                                       | ---                       | ---               |
 | `GET`     | `/search{?q=query}`                       | `q`                       | Returns a list of search results matching the query. |
 | `GET`     | `/health`                                 | N/A                       | Returns the health status of the service. |
+
+Note: the API layer currently exposes `GET /v1/search/search`. It does not expose a `/health` route for search.
 
 #### Arguments
 `q`: the search query string  
@@ -67,6 +75,8 @@ The search is performed across page slugs, names (titles), and content with diff
 | Type      | Route                                     | Arguments             | Description       |
 | ---       | ---                                       | ---                   | ---               |
 | `POST`    | `/reindex`                                | N/A                   | Triggers a full reindex of all pages from the wiki service. |
+
+Note: the API layer currently does not expose `POST /v1/search/reindex`.
 
 #### `/reindex`
 **Description:** Triggers a complete reindex of all pages from the wiki service.  

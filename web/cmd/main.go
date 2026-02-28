@@ -1,6 +1,7 @@
 package main
 
 import (
+	"web/auth"
 	"web/config"
 	"web/handlers/image"
 	"web/handlers/search"
@@ -18,6 +19,14 @@ func main() {
 	r.GET("/", wiki.GetHome)
 	r.GET("/pages/:id", wiki.GetPage)
 	r.GET("/search", search.GetSearchPage)
+	r.GET("/login", auth.GetLoginPage)
+	r.GET("/profile", auth.GetProfilePage)
+
+	// Auth API proxy routes - browser calls these, web service forwards to API layer
+	r.POST("/auth/login", auth.PostLogin)
+	r.POST("/auth/register", auth.PostRegister)
+	r.GET("/auth/me", auth.GetMe)
+	r.POST("/auth/logout", auth.PostLogout)
 
 	r.GET("/image/*id", image.GetImage)
 
