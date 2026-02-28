@@ -19,8 +19,8 @@ func init() {
 	}
 
 	apiURL := GetEnv("API_LAYER_URL", "http://127.0.0.1:2745")
-	WikiURL = fmt.Sprintf("%s/v1/wiki", apiURL)
-	SearchURL = fmt.Sprintf("%s/v1/search", apiURL)
+	WikiURL = fmt.Sprintf("%s/wiki", apiURL)
+	SearchURL = fmt.Sprintf("%s/search", apiURL)
 	AuthURL = fmt.Sprintf("%s/auth", apiURL)
   ImageServiceURL = GetEnv("IMAGE_SERVICE_URL", "https://treveccabuddy.tp-images.workers.dev")
 }
