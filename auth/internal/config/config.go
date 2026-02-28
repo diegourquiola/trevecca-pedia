@@ -18,6 +18,7 @@ type Config struct {
 	DBName      string
 	DBUser      string
 	DBPassword  string
+	DBURL       string
 	JWTSecret   string
 	JWTExpHours int
 	CORSOrigins []string
@@ -27,6 +28,9 @@ type Config struct {
 // DatabaseURL builds a PostgreSQL keyword/value connection string from the
 // individual DB fields, matching the pattern used by the wiki service.
 func (c Config) DatabaseURL() string {
+	if c.DBURL != "" {
+		return c.DBURL
+	}
 	return fmt.Sprintf("host=%s port=%s dbname=%s user=%s password=%s sslmode=disable",
 		c.DBHost, c.DBPort, c.DBName, c.DBUser, c.DBPassword)
 }
@@ -39,6 +43,7 @@ func Load() (*Config, error) {
 
 	config := &Config{
 		Port:        getEnv("PORT", "8083"),
+		DBURL:       getEnv("DATABASE_URL", ""),
 		DBHost:      getEnv("AUTH_DB_HOST", "localhost"),
 		DBPort:      getEnv("AUTH_DB_PORT", "5433"),
 		DBName:      getEnv("AUTH_DB_NAME", "auth"),
