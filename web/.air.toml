@@ -3,7 +3,7 @@ tmp_dir = "tmp"
 
 [build]
 cmd = "go build -o ./tmp/main ./cmd/main.go"
-pre_cmd = ["templ generate"]
+pre_cmd = ["templ generate && bun build:css"]
 bin = "./tmp/main"
 include_ext = ["go", "templ"]
 exclude_dir = ["tmp", "node_modules"]
