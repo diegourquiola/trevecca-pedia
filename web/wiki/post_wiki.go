@@ -152,13 +152,12 @@ func PostEditPage(c *gin.Context) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		respBody, _ := io.ReadAll(resp.Body)
 		page, fetchErr := fetchPage(id)
 		if fetchErr != nil {
 			c.AbortWithError(http.StatusBadGateway, fetchErr)
 			return
 		}
-		errMsg := fmt.Sprintf("Unable to save changes. (status %d: %s)", resp.StatusCode, string(respBody))
+		errMsg := fmt.Sprintf("Unable to save changes. (status %d)", resp.StatusCode)
 		editContent := wikipages.WikiEditContent(page, errMsg)
 		component := components.Page("Editing: "+page.Name, editContent)
 		component.Render(context.Background(), c.Writer)
