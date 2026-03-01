@@ -18,7 +18,7 @@ func init() {
 		log.Println("Warning: .env file not found, using defaults")
 	}
 
-	apiURL := GetEnv("API_LAYER_URL", "http://127.0.0.1:2745")
+	apiURL := GetEnv("API_LAYER_URL", "http://127.0.0.1:2745/v1")
 	WikiURL = fmt.Sprintf("%s/wiki", apiURL)
 	SearchURL = fmt.Sprintf("%s/search", apiURL)
 	AuthURL = fmt.Sprintf("%s/auth", apiURL)

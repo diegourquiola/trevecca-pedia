@@ -1,0 +1,49 @@
+package wikipages
+
+import "web/utils"
+import "fmt"
+
+templ WikiEditContent(page utils.Page, errMsg string) {
+	<div class="max-w-4xl mx-auto px-4 py-8">
+		<div class="mb-6">
+			<h1 class="text-2xl font-bold">Editing: { page.Name }</h1>
+			<a
+				href={ templ.SafeURL(fmt.Sprintf("/pages/%s", page.Slug)) }
+				class="text-sm text-blue-600 hover:underline mt-1 inline-block"
+			>
+				&larr; Cancel, go back
+			</a>
+		</div>
+		if errMsg != "" {
+			<div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+				<p class="text-sm font-medium text-red-800">Unable to save changes</p>
+				<p class="text-sm text-red-600 mt-1">{ errMsg }</p>
+			</div>
+		}
+		<form
+			action={ templ.SafeURL(fmt.Sprintf("/pages/%s/edit", page.Slug)) }
+			method="POST"
+			class="space-y-4"
+		>
+			<textarea
+				name="content"
+				class="w-full h-96 font-mono text-sm p-4 border border-gray-300 rounded-lg focus:outline-none resize-y"
+				spellcheck="false"
+			>{ page.Content }</textarea>
+			<div class="flex gap-3">
+				<button
+					type="submit"
+					class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+				>
+					Save Changes
+				</button>
+				<a
+					href={ templ.SafeURL(fmt.Sprintf("/pages/%s", page.Slug)) }
+					class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium"
+				>
+					Cancel
+				</a>
+			</div>
+		</form>
+	</div>
+}
