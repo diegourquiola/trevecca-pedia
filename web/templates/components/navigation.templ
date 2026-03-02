@@ -30,8 +30,20 @@ templ Navigation() {
 						Log In
 					</a>
 
+				<!-- New Page button (auth-gated, desktop only) -->
+					<a
+						id="nav-new-page"
+						href="/pages/new"
+						class="hidden md:hidden items-center gap-2 px-4 py-2 bg-neutral-800 dark:bg-neutral-100 text-white dark:text-neutral-900 rounded-lg hover:bg-neutral-700 dark:hover:bg-neutral-300 font-medium text-sm transition-colors"
+					>
+						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+						</svg>
+						New Page
+					</a>
+
 					<!-- Logged in state -->
-					<div id="nav-user-menu" class="hidden relative">
+				<div id="nav-user-menu" class="hidden relative">
 						<button
 							onclick="toggleUserDropdown()"
 							class="flex items-center gap-2 p-2 rounded-lg text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
@@ -80,4 +92,15 @@ templ Navigation() {
 			</div>
 		</div>
 	</header>
+	<!-- Floating New Page FAB (auth-gated, mobile only, hidden on wiki entry pages) -->
+	<a
+		id="nav-new-page-fab"
+		href="/pages/new"
+		class="hidden fixed bottom-6 right-6 z-50 p-3 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 rounded-full shadow-lg hover:bg-neutral-700 dark:hover:bg-neutral-500 transition-colors"
+		aria-label="Create new page"
+	>
+		<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+		</svg>
+	</a>
 }

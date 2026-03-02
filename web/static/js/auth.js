@@ -172,6 +172,22 @@ function _applyNavUser(user) {
     loginLink.classList.add('hidden')
     userMenu.classList.remove('hidden')
     if (userEmail) userEmail.textContent = user.email || ''
+
+    // Show "New Page" desktop button (md+ only)
+    const newPageBtn = document.getElementById('nav-new-page')
+    if (newPageBtn) {
+        newPageBtn.classList.remove('hidden', 'md:hidden')
+        newPageBtn.classList.add('hidden', 'md:flex')
+    }
+
+    // Show "New Page" mobile FAB only if we're NOT on a wiki entry page
+    // (detected by the presence of the edit FAB)
+    const newPageFab = document.getElementById('nav-new-page-fab')
+    const editFab = document.querySelector('a[aria-label="Edit page"]')
+    if (newPageFab && !editFab) {
+        newPageFab.classList.remove('hidden')
+        newPageFab.classList.add('md:hidden')
+    }
 }
 
 function _applyNavGuest() {
@@ -180,6 +196,18 @@ function _applyNavGuest() {
     if (!loginLink || !userMenu) return
     loginLink.classList.remove('hidden')
     userMenu.classList.add('hidden')
+
+    // Hide "New Page" elements for guests
+    const newPageBtn = document.getElementById('nav-new-page')
+    if (newPageBtn) {
+        newPageBtn.classList.remove('md:flex')
+        newPageBtn.classList.add('hidden', 'md:hidden')
+    }
+    const newPageFab = document.getElementById('nav-new-page-fab')
+    if (newPageFab) {
+        newPageFab.classList.remove('md:hidden')
+        newPageFab.classList.add('hidden')
+    }
 }
 
 function toggleUserDropdown() {

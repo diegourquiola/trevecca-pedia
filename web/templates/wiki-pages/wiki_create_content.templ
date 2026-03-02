@@ -1,0 +1,86 @@
+package wikipages
+
+templ WikiCreateContent(errMsg string, name string, slug string, content string) {
+	<div class="max-w-4xl mx-auto px-4 py-8">
+		<div class="mb-6">
+			<h1 class="text-2xl font-bold">Create New Page</h1>
+			<a
+				href="/"
+				class="text-sm text-blue-600 hover:underline mt-1 inline-block"
+			>
+				&larr; Back to home
+			</a>
+		</div>
+		if errMsg != "" {
+			<div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+				<p class="text-sm font-medium text-red-800">Unable to create page</p>
+				<p class="text-sm text-red-600 mt-1">{ errMsg }</p>
+			</div>
+		}
+		<form
+			action="/pages/new"
+			method="POST"
+			class="space-y-4"
+		>
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+				<div>
+					<label for="name" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+						Page Title
+					</label>
+					<input
+						type="text"
+						id="name"
+						name="name"
+						value={ name }
+						placeholder="Example Page"
+						required
+						class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+					/>
+				</div>
+				<div>
+					<label for="slug" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+						URL Slug
+					</label>
+					<input
+						type="text"
+						id="slug"
+						name="slug"
+						value={ slug }
+						placeholder="example-page"
+						required
+						pattern="[a-z0-9]+(-[a-z0-9]+)*"
+						title="Lowercase letters, numbers, and hyphens only (e.g. example-page)"
+						class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
+					/>
+					<p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">Lowercase letters, numbers, and hyphens only</p>
+				</div>
+			</div>
+			<div>
+				<label for="content" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+					Content (Markdown)
+				</label>
+				<textarea
+					id="content"
+					name="content"
+					class="w-full h-96 font-mono text-sm p-4 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+					spellcheck="false"
+					placeholder="Write your page content in Markdown..."
+				>{ content }</textarea>
+			</div>
+			<div class="flex gap-3">
+				<button
+					type="submit"
+					class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+				>
+					Create Page
+				</button>
+				<a
+					href="/"
+					class="px-6 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-800 font-medium text-neutral-700 dark:text-neutral-300"
+				>
+					Cancel
+				</a>
+			</div>
+		</form>
+	</div>
+}

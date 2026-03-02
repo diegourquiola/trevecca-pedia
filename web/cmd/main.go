@@ -17,6 +17,8 @@ func main() {
 
 	r.Static("./static", "static")
 	r.GET("/", wiki.GetHome)
+	r.GET("/pages/new", wiki.GetCreatePage)
+	r.POST("/pages/new", wiki.PostCreatePage)
 	r.GET("/pages/:id", wiki.GetPage)
 	r.GET("/pages/:id/edit", wiki.GetEditPage)
 	r.POST("/pages/:id/edit", wiki.PostEditPage)
