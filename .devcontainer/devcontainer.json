@@ -1,7 +1,0 @@
-{
-  "image": "mcr.microsoft.com/devcontainers/universal:2",
-  "features": {},
-  "ghcr.io/nlstn/devcontainer-features/go-air:1": {},
-  "ghcr.io/devcontainers/features/docker-in-docker:2": {},
-  "ghcr.io/devcontainers-extra/features/bun:1": {}
-}
