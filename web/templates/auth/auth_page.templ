@@ -1,5 +1,7 @@
 package auth
 
+import "web/templates/components"
+
 templ AuthPage() {
 	<section class="py-12 sm:py-16 lg:py-20">
 		<div class="max-w-md mx-auto px-4 sm:px-6">
@@ -33,17 +35,28 @@ templ AuthPage() {
 						class="w-full px-4 py-3 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600 focus:border-transparent transition-all"
 					/>
 				</div>
-				<div>
-					<label for="login-password" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Password</label>
+			<div>
+				<label for="login-password" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Password</label>
+				<div class="relative">
 					<input
 						type="password"
 						id="login-password"
 						name="password"
 						required
 						placeholder="Enter your password"
-						class="w-full px-4 py-3 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600 focus:border-transparent transition-all"
+						class="w-full px-4 py-3 pr-12 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600 focus:border-transparent transition-all"
 					/>
+					<button
+						type="button"
+						onclick="togglePasswordVisibility('login-password')"
+						class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 transition-colors"
+						aria-label="Toggle password visibility"
+					>
+						@components.EyeIcon("login-password-eye", "w-5 h-5")
+						@components.EyeOffIcon("login-password-eye-off", "w-5 h-5 hidden")
+					</button>
 				</div>
+			</div>
 				<div id="login-error" class="hidden text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3"></div>
 				<button
 					type="submit"
@@ -65,28 +78,50 @@ templ AuthPage() {
 						class="w-full px-4 py-3 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600 focus:border-transparent transition-all"
 					/>
 				</div>
-				<div>
-					<label for="register-password" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Password</label>
+			<div>
+				<label for="register-password" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Password</label>
+				<div class="relative">
 					<input
 						type="password"
 						id="register-password"
 						name="password"
 						required
 						placeholder="Create a password"
-						class="w-full px-4 py-3 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600 focus:border-transparent transition-all"
+						class="w-full px-4 py-3 pr-12 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600 focus:border-transparent transition-all"
 					/>
+					<button
+						type="button"
+						onclick="togglePasswordVisibility('register-password')"
+						class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 transition-colors"
+						aria-label="Toggle password visibility"
+					>
+						@components.EyeIcon("register-password-eye", "w-5 h-5")
+						@components.EyeOffIcon("register-password-eye-off", "w-5 h-5 hidden")
+					</button>
 				</div>
-				<div>
-					<label for="register-confirm" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Confirm Password</label>
+			</div>
+			<div>
+				<label for="register-confirm" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">Confirm Password</label>
+				<div class="relative">
 					<input
 						type="password"
 						id="register-confirm"
 						name="confirm"
 						required
 						placeholder="Confirm your password"
-						class="w-full px-4 py-3 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600 focus:border-transparent transition-all"
+						class="w-full px-4 py-3 pr-12 bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-400 dark:focus:ring-neutral-600 focus:border-transparent transition-all"
 					/>
+					<button
+						type="button"
+						onclick="togglePasswordVisibility('register-confirm')"
+						class="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200 transition-colors"
+						aria-label="Toggle password visibility"
+					>
+						@components.EyeIcon("register-confirm-eye", "w-5 h-5")
+						@components.EyeOffIcon("register-confirm-eye-off", "w-5 h-5 hidden")
+					</button>
 				</div>
+			</div>
 				<div id="register-error" class="hidden text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3"></div>
 				<button
 					type="submit"

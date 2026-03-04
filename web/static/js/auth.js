@@ -293,3 +293,20 @@ async function handleRegister(e) {
         showError('register-error', err.message)
     }
 }
+
+// Password visibility toggle
+function togglePasswordVisibility(inputId) {
+    var input = document.getElementById(inputId)
+    var eyeIcon = document.getElementById(inputId + '-eye')
+    var eyeOffIcon = document.getElementById(inputId + '-eye-off')
+    
+    if (input.type === 'password') {
+        input.type = 'text'
+        eyeIcon.classList.add('hidden')
+        eyeOffIcon.classList.remove('hidden')
+    } else {
+        input.type = 'password'
+        eyeIcon.classList.remove('hidden')
+        eyeOffIcon.classList.add('hidden')
+    }
+}
