@@ -1,86 +1,101 @@
 package wikipages
 
 templ WikiCreateContent(errMsg string, name string, slug string, content string) {
-	<div class="max-w-4xl mx-auto px-4 py-8">
-		<div class="mb-6">
-			<h1 class="text-2xl font-bold">Create New Page</h1>
-			<a
-				href="/"
-				class="text-sm text-blue-600 hover:underline mt-1 inline-block"
+	<div class="flex flex-col lg:flex-row min-h-screen">
+		<!-- Left side: Editor -->
+		<div class="w-full lg:w-1/2 flex flex-col p-6 lg:p-8 border-b lg:border-b-0 lg:border-r border-neutral-200 dark:border-neutral-800">
+			<div class="mb-4">
+				<div class="flex items-center justify-between">
+					<h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Create New Page</h1>
+					<a
+						href="/"
+						class="text-sm text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200"
+					>
+						&larr; Back to home
+					</a>
+				</div>
+			</div>
+			if errMsg != "" {
+				<div class="mb-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+					<p class="text-sm font-medium text-red-800 dark:text-red-200">Unable to create page</p>
+					<p class="text-sm text-red-600 dark:text-red-300 mt-1">{ errMsg }</p>
+				</div>
+			}
+			<form
+				action="/pages/new"
+				method="POST"
+				class="flex-1 flex flex-col"
 			>
-				&larr; Back to home
-			</a>
-		</div>
-		if errMsg != "" {
-			<div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-				<p class="text-sm font-medium text-red-800">Unable to create page</p>
-				<p class="text-sm text-red-600 mt-1">{ errMsg }</p>
-			</div>
-		}
-		<form
-			action="/pages/new"
-			method="POST"
-			class="space-y-4"
-		>
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-				<div>
-					<label for="name" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-						Page Title
-					</label>
-					<input
-						type="text"
-						id="name"
-						name="name"
-						value={ name }
-						placeholder="Example Page"
-						required
-						class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-					/>
+				<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+					<div>
+						<label for="name" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+							Page Title
+						</label>
+						<input
+							type="text"
+							id="name"
+							name="name"
+							value={ name }
+							placeholder="Example Page"
+							required
+							class="w-full px-4 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-300 dark:focus:ring-neutral-700"
+						/>
+					</div>
+					<div>
+						<label for="slug" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+							URL Slug
+						</label>
+						<input
+							type="text"
+							id="slug"
+							name="slug"
+							value={ slug }
+							placeholder="example-page"
+							required
+							pattern="[a-z0-9]+(-[a-z0-9]+)*"
+							title="Lowercase letters, numbers, and hyphens only (e.g. example-page)"
+							class="w-full px-4 py-2 text-sm border border-neutral-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-neutral-300 dark:focus:ring-neutral-700 font-mono"
+						/>
+						<p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">Lowercase letters, numbers, and hyphens only</p>
+					</div>
 				</div>
-				<div>
-					<label for="slug" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
-						URL Slug
-					</label>
-					<input
-						type="text"
-						id="slug"
-						name="slug"
-						value={ slug }
-						placeholder="example-page"
-						required
-						pattern="[a-z0-9]+(-[a-z0-9]+)*"
-						title="Lowercase letters, numbers, and hyphens only (e.g. example-page)"
-						class="w-full px-4 py-2 text-sm border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
-					/>
-					<p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">Lowercase letters, numbers, and hyphens only</p>
-				</div>
-			</div>
-			<div>
-				<label for="content" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+				<label for="edit-textarea" class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
 					Content (Markdown)
 				</label>
 				<textarea
-					id="content"
+					id="edit-textarea"
 					name="content"
-					class="w-full h-96 font-mono text-sm p-4 border border-gray-300 dark:border-neutral-600 rounded-lg bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y"
+					class="flex-1 w-full min-h-[60vh] lg:min-h-0 font-mono text-sm p-4 bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 border-none focus:outline-none focus:ring-2 focus:ring-neutral-300 dark:focus:ring-neutral-700 resize-none"
 					spellcheck="false"
 					placeholder="Write your page content in Markdown..."
 				>{ content }</textarea>
+				<div class="flex gap-3 mt-4 pt-4 border-t border-neutral-200 dark:border-neutral-800">
+					<button
+						type="submit"
+						class="px-6 py-2 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 rounded-lg hover:bg-neutral-700 dark:hover:bg-neutral-300 font-medium transition-colors"
+					>
+						Create Page
+					</button>
+					<a
+						href="/"
+						class="px-6 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 font-medium transition-colors"
+					>
+						Cancel
+					</a>
+				</div>
+			</form>
+		</div>
+		
+		<!-- Right side: Preview -->
+		<div class="w-full lg:w-1/2 flex flex-col p-6 lg:p-8 bg-neutral-50 dark:bg-neutral-900/50">
+			<div class="mb-4">
+				<h2 class="text-lg font-semibold text-neutral-800 dark:text-neutral-200">Preview</h2>
 			</div>
-			<div class="flex gap-3">
-				<button
-					type="submit"
-					class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-				>
-					Create Page
-				</button>
-				<a
-					href="/"
-					class="px-6 py-2 border border-gray-300 dark:border-neutral-600 rounded-lg hover:bg-gray-50 dark:hover:bg-neutral-800 font-medium text-neutral-700 dark:text-neutral-300"
-				>
-					Cancel
-				</a>
+			<div class="flex-1 overflow-auto">
+				<div id="entry" class="prose prose-lg dark:prose-invert max-w-none">
+					<p class="text-neutral-400 dark:text-neutral-600 italic">Start typing to see preview...</p>
+				</div>
 			</div>
-		</form>
+		</div>
 	</div>
 }

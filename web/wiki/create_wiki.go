@@ -16,7 +16,7 @@ import (
 
 // GetCreatePage renders the "Create New Page" form.
 func GetCreatePage(c *gin.Context) {
-	createContent := wikipages.WikiCreateContent("", "", "", "")
+	createContent := wikipages.WikiCreateContent("", "", "", "# Title\n\nContent here...")
 	component := components.Page("Create New Page", createContent)
 	component.Render(context.Background(), c.Writer)
 }
