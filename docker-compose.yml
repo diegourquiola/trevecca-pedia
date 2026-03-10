@@ -1,0 +1,113 @@
+services:
+  wiki:
+    build:
+      context: ./wiki
+      dockerfile: Dockerfile
+    network_mode: host
+    user: root
+    env_file: ./wiki/.env
+    environment:
+      # Override the relative path from .env with an absolute container path
+      WIKI_DATA_DIR: /data
+    volumes:
+      - ./wiki-fs:/data
+    depends_on:
+      wiki-db:
+        condition: service_healthy
+    profiles:
+      - wiki
+    restart: unless-stopped
+
+  search:
+    build:
+      context: ./search
+      dockerfile: Dockerfile
+    network_mode: host
+    user: root
+    env_file: ./search/.env
+    environment:
+      # Override the relative path from .env with an absolute container path
+      INDEX_DIR: /index
+    volumes:
+      - ./wiki-fs/index:/index
+    profiles:
+      - search
+    restart: unless-stopped
+
+  auth:
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    network_mode: host
+    env_file: ./auth/.env
+    depends_on:
+      auth-db:
+        condition: service_healthy
+    profiles:
+      - auth
+    restart: unless-stopped
+
+  api-layer:
+    build:
+      context: ./api-layer
+      dockerfile: Dockerfile
+    network_mode: host
+    env_file: ./api-layer/.env
+    profiles:
+      - api-layer
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    network_mode: host
+    env_file: ./web/.env
+    profiles:
+      - web
+    restart: unless-stopped
+
+  # Databases - always started (no profiles)
+  wiki-db:
+    image: postgres:16-alpine
+    container_name: wiki-db
+    network_mode: host
+    env_file: ./wiki-db/.env
+    environment:
+      POSTGRES_DB: wiki
+      POSTGRES_USER: wiki_user
+      POSTGRES_PASSWORD: ${WIKI_DB_PASSWORD:-myatt}
+    volumes:
+      - wiki-data:/var/lib/postgresql/data
+      - ./wiki-db/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wiki_user -d wiki"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  auth-db:
+    image: postgres:16-alpine
+    container_name: trevecca-auth-db
+    network_mode: host
+    env_file: ./auth-db/.env
+    environment:
+      POSTGRES_USER: ${AUTH_DB_USER:-auth_user}
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD:-change_me_in_production}
+      POSTGRES_DB: ${AUTH_DB_NAME:-auth}
+      # auth-db listens on 5433 to avoid collision with wiki-db on 5432
+      PGPORT: 5433
+    volumes:
+      - auth-data:/var/lib/postgresql/data
+      - ./auth-db/init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${AUTH_DB_USER:-auth_user} -d ${AUTH_DB_NAME:-auth} -p 5433"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  wiki-data:
+  auth-data:
