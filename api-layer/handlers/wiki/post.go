@@ -225,3 +225,31 @@ func PostPageRevision(c *gin.Context) {
 	io.Copy(c.Writer, resp.Body)
 }
 
+func PostPageCategories(c *gin.Context) {
+	id := c.Param("id")
+	body, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to read categories"})
+		return
+	}
+	c.Request.Body.Close()
+
+	url := fmt.Sprintf("%s/pages/%s/categories", config.WikiServiceURL, id)
+	req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(body))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to create request"})
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+        c.JSON(http.StatusBadGateway, gin.H{"error": "wiki service unreachable", "detail": err.Error()})
+        return
+	}
+	defer resp.Body.Close()
+
+	c.Status(resp.StatusCode)
+	io.Copy(c.Writer, resp.Body)
+}
+
