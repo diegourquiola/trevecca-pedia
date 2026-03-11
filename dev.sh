@@ -48,7 +48,11 @@ print_service() {
 case "${1:-}" in
     stop)
         print_header "Stopping all Docker services"
-        docker compose down
+        STOP_FLAGS=()
+        for svc in "${ALL_SERVICES[@]}"; do
+            STOP_FLAGS+=(--profile "$svc")
+        done
+        docker compose "${STOP_FLAGS[@]}" down
         echo -e "\n${GREEN}All services stopped.${NC}"
         exit 0
         ;;
