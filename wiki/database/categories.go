@@ -194,15 +194,20 @@ func GetPageCategories(ctx context.Context, db *sql.DB, pageId string) ([]Catego
 func SetPageCategories(ctx context.Context, db *sql.DB, pageId string, categorySlugs []string) error {
 	pageUUID, err := GetUUID(ctx, db, pageId)
 	if err != nil {
-		return wikierrors.DatabaseError(err)
+		return wikierrors.PageNotFound()
 	}
 
 	var catIDs []int
+	seen := make(map[int]struct{}, len(categorySlugs))
 	for _, slug := range categorySlugs {
 		cat, err := GetCategoryBySlugPath(ctx, db, slug)
 		if err != nil {
 			return err
 		}
+		if _, ok := seen[cat.ID]; ok {
+			continue
+		}
+		seen[cat.ID] = struct{}{}
 		catIDs = append(catIDs, cat.ID)
 	}
 

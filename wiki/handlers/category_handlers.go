@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"context"
 	"net/http"
 	"wiki/database"
 	wikierrors "wiki/errors"
@@ -11,7 +10,7 @@ import (
 )
 
 func CategoriesHandler(c *gin.Context) {
-	ctx := context.Background()
+	ctx := c.Request.Context()
 	db, err := utils.GetDatabase()
 	if err != nil {
 		werr, is := wikierrors.AsWikiError(err)
@@ -51,7 +50,7 @@ func CategoriesHandler(c *gin.Context) {
 }
 
 func GetPageCategoriesHandler(c *gin.Context) {
-	ctx := context.Background()
+	ctx := c.Request.Context()
 	db, err := utils.GetDatabase()
 	if err != nil {
 		werr, is := wikierrors.AsWikiError(err)
@@ -84,7 +83,7 @@ func GetPageCategoriesHandler(c *gin.Context) {
 }
 
 func SetPageCategoriesHandler(c *gin.Context) {
-	ctx := context.Background()
+	ctx := c.Request.Context()
 	db, err := utils.GetDatabase()
 	if err != nil {
 		werr, is := wikierrors.AsWikiError(err)

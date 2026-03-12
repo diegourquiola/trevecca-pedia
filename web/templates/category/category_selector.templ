@@ -59,7 +59,7 @@ templ CategorySelector(categories []utils.Category, selectedCategories []string)
 		<!-- Hidden inputs for form submission -->
 		<div id="category-inputs">
 			for _, slug := range selectedCategories {
-				<input type="hidden" name="categories" value={ slug }/>
+				<input type="hidden" name="categories" value={ slug } data-slug={ slug }/>
 			}
 		</div>
 	</div>
@@ -146,7 +146,7 @@ templ CategorySelector(categories []utils.Category, selectedCategories []string)
 			input.type = 'hidden';
 			input.name = 'categories';
 			input.value = fullSlug;
-			input.id = `category-input-${fullSlug.replace(/\//g, '-')}`;
+            input.dataset.slug = fullSlug
 			container.appendChild(input);
 		}
 		
@@ -158,8 +158,9 @@ templ CategorySelector(categories []utils.Category, selectedCategories []string)
 			if (tag) tag.remove();
 			
 			// Remove hidden input
-			const inputId = `category-input-${fullSlug.replace(/\//g, '-')}`;
-			const input = document.getElementById(inputId);
+            const input = Array.from(
+                document.querySelectorAll('#category-inputs input[name="categories"]'),
+            ).find((el) => el.dataset.slug === fullSlug);
 			if (input) input.remove();
 			
 			// Show in dropdown if filter matches

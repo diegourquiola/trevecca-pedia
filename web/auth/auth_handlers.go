@@ -2,6 +2,7 @@ package auth
 
 import (
 	"log"
+	"strings"
 	"web/templates/auth"
 	"web/templates/components"
 
@@ -11,7 +12,7 @@ import (
 func GetLoginPage(c *gin.Context) {
 	// Get the redirect URL from the query parameter, default to home page
 	redirectURL := c.Query("redirect")
-	if redirectURL == "" {
+	if redirectURL == "" || !strings.HasPrefix(redirectURL, "/") || strings.HasPrefix(redirectURL, "//") {
 		redirectURL = "/"
 	}
 
