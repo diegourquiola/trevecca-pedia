@@ -35,7 +35,7 @@ CREATE INDEX idx_categories_parent ON categories(parent_id);
 -- Step 5: Update existing categories with paths (only if they have null/empty paths or no path yet)
 -- This sets paths for existing root categories (those without parent_id)
 UPDATE categories 
-SET path = 'root.' || slug 
+SET path = ('root.' || slug)::ltree
 WHERE parent_id IS NULL 
 AND (path IS NULL OR path = 'root');
 
@@ -65,7 +65,7 @@ BEGIN
         IF EXISTS (
             SELECT 1 FROM categories 
             WHERE id = NEW.parent_id 
-            AND path @> NEW.path
+            AND NEW.path @> path
         ) THEN
             RAISE EXCEPTION 'Circular reference detected: parent is already a descendant';
         END IF;
