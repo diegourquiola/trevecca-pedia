@@ -1,6 +1,11 @@
 package wikipages
 
-templ WikiCreateContent(errMsg string, name string, slug string, content string) {
+import (
+	"web/templates/category"
+	"web/utils"
+)
+
+templ WikiCreateContent(errMsg string, name string, slug string, content string, categories []utils.Category, selectedCategories []string) {
 	<div class="flex flex-col h-[calc(100vh-4rem)] overflow-hidden">
 		<!-- Header with title -->
 		<div class="flex-none p-4 lg:p-6 pb-2 lg:pb-0">
@@ -84,6 +89,10 @@ templ WikiCreateContent(errMsg string, name string, slug string, content string)
 							/>
 							<p class="text-xs text-neutral-500 dark:text-neutral-400 mt-1">Lowercase letters, numbers, and hyphens only</p>
 						</div>
+					</div>
+					<!-- Category selector -->
+					<div class="mb-3">
+						@category.CategorySelector(categories, selectedCategories)
 					</div>
 					<label for="edit-textarea" class="flex-none block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
 						Content (Markdown)

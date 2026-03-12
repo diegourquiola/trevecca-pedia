@@ -3,6 +3,7 @@ package wiki
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -16,7 +17,8 @@ import (
 
 // GetCreatePage renders the "Create New Page" form.
 func GetCreatePage(c *gin.Context) {
-	createContent := wikipages.WikiCreateContent("", "", "", "# Title\n\nContent here...")
+	categories, _ := getCategories()
+	createContent := wikipages.WikiCreateContent("", "", "", "# Title\n\nContent here...", categories, []string{})
 	component := components.Page("Create New Page", createContent)
 	component.Render(context.Background(), c.Writer)
 }
@@ -27,9 +29,12 @@ func PostCreatePage(c *gin.Context) {
 	slug := c.PostForm("slug")
 	content := c.PostForm("content")
 
+	// Fetch categories for re-rendering on error
+	categories, _ := getCategories()
+
 	// Render helper: re-renders the form preserving user input + showing error.
 	renderErr := func(errMsg string) {
-		createContent := wikipages.WikiCreateContent(errMsg, name, slug, content)
+		createContent := wikipages.WikiCreateContent(errMsg, name, slug, content, categories, []string{})
 		component := components.Page("Create New Page", createContent)
 		component.Render(context.Background(), c.Writer)
 	}
@@ -113,6 +118,36 @@ func PostCreatePage(c *gin.Context) {
 		return
 	}
 
-	// Step 5 — success, redirect to the new page
+	// Step 5 — set categories for the new page (best effort - don't fail if this errors)
+	selectedCategories := c.PostFormArray("categories")
+	if len(selectedCategories) > 0 {
+		token, _ := c.Cookie(authCookieName)
+		setPageCategories(c.Request.Context(), token, slug, selectedCategories)
+	}
+
+	// Step 6 — success, redirect to the new page
 	c.Redirect(http.StatusFound, fmt.Sprintf("/pages/%s?saved=true", slug))
+}
+
+// setPageCategories associates categories with a page. Called best-effort after page creation.
+func setPageCategories(ctx context.Context, token string, slug string, categorySlugs []string) {
+	categoriesURL := fmt.Sprintf("%s/pages/%s/categories", config.WikiURL, slug)
+
+	body, err := json.Marshal(categorySlugs)
+	if err != nil {
+		return
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, categoriesURL, bytes.NewReader(body))
+	if err != nil {
+		return
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	resp, err := wikiClient.Do(req)
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
 }
