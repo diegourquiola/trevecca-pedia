@@ -17,28 +17,36 @@ import (
 
 func GetPage(c *gin.Context) {
 	id := c.Param("id")
-	resp, err := http.Get(fmt.Sprintf("%s/pages/%s", config.WikiURL, id))
+
+	// Fetch page and categories in parallel
+	pageResp, err := http.Get(fmt.Sprintf("%s/pages/%s", config.WikiURL, id))
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, err)
+		return
 	}
-	defer resp.Body.Close()
+	defer pageResp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	pageBody, err := io.ReadAll(pageResp.Body)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("Couldn't read http request: %w\n", err))
+		return
 	}
 
 	var page utils.Page
-	err = json.Unmarshal(body, &page)
+	err = json.Unmarshal(pageBody, &page)
 	if err != nil {
 		c.AbortWithError(http.StatusBadRequest, fmt.Errorf("Couldn't parse json from API layer: %w\n", err))
+		return
 	}
+
+	// Fetch categories for this page
+	categories, _ := getPageCategories(page.UUID.String())
+	page.Categories = categories
 
 	saved := c.Query("saved") == "true"
 	entryContent := wikipages.WikiEntryContent(page, saved)
 	component := components.Page(page.Name, entryContent)
 	component.Render(context.Background(), c.Writer)
-
 }
 
 func GetHome(c *gin.Context) {
@@ -67,8 +75,9 @@ func GetCategoryPages(c *gin.Context) {
 	}
 
 	// Resolve category name from slug
+	flatCategories := flattenCategories(categories)
 	categoryName := "All Categories"
-	for _, cat := range categories {
+	for _, cat := range flatCategories {
 		if cat.FullSlug == categorySlug {
 			categoryName = cat.Name
 			break
@@ -80,6 +89,16 @@ func GetCategoryPages(c *gin.Context) {
 		title = "All Pages"
 	}
 
+	// Check if this is an htmx request
+	if c.GetHeader("HX-Request") == "true" {
+		// Return only the content partial (no full page wrapper)
+		// The hx-select attribute will extract just #category-main-content
+		content := categorytemplates.CategoryContent(categorySlug, categoryName, categories, pages)
+		content.Render(context.Background(), c.Writer)
+		return
+	}
+
+	// Full page render for non-htmx requests
 	content := categorytemplates.CategoryContent(categorySlug, categoryName, categories, pages)
 	component := components.Page(title, content)
 	component.Render(context.Background(), c.Writer)
@@ -133,7 +152,53 @@ func getPagesByCategory(category string) ([]utils.PageInfoPrev, error) {
 }
 
 func getCategories() ([]utils.Category, error) {
-	resp, err := http.Get(fmt.Sprintf("%s/categories?root=true", config.WikiURL))
+	resp, err := http.Get(fmt.Sprintf("%s/categories?tree=true", config.WikiURL))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var categories []utils.Category
+	err = json.Unmarshal(body, &categories)
+	if err != nil {
+		return nil, err
+	}
+
+	return categories, nil
+}
+
+func flattenCategories(categories []utils.Category) []utils.CategoryFlat {
+	var result []utils.CategoryFlat
+
+	var flatten func(cats []utils.Category, depth int)
+	flatten = func(cats []utils.Category, depth int) {
+		for _, cat := range cats {
+			result = append(result, utils.CategoryFlat{
+				ID:          cat.ID,
+				Slug:        cat.Slug,
+				Name:        cat.Name,
+				FullSlug:    cat.FullSlug,
+				Depth:       depth,
+				DisplayName: cat.Name,
+			})
+
+			if len(cat.Children) > 0 {
+				flatten(cat.Children, depth+1)
+			}
+		}
+	}
+
+	flatten(categories, 0)
+	return result
+}
+
+func getPageCategories(pageId string) ([]utils.Category, error) {
+	resp, err := http.Get(fmt.Sprintf("%s/pages/%s/categories", config.WikiURL, pageId))
 	if err != nil {
 		return nil, err
 	}

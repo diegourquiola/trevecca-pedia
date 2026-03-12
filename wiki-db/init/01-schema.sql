@@ -70,7 +70,7 @@ BEGIN
         IF EXISTS (
             SELECT 1 FROM categories 
             WHERE id = NEW.parent_id 
-            AND path @> NEW.path
+            AND NEW.path @> path
         ) THEN
             RAISE EXCEPTION 'Circular reference detected: parent is already a descendant';
         END IF;

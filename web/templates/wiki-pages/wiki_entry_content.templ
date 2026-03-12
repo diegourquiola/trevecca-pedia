@@ -2,6 +2,32 @@ package wikipages
 
 import "web/utils"
 import "fmt"
+import "strings"
+
+func buildCategoryBreadcrumbs(fullSlug string) []struct {
+	Name   string
+	Slug   string
+} {
+	parts := strings.Split(fullSlug, "/")
+	var breadcrumbs []struct {
+		Name   string
+		Slug   string
+	}
+	
+	for i := 0; i < len(parts); i++ {
+		name := parts[i]
+		slug := strings.Join(parts[:i+1], "/")
+		breadcrumbs = append(breadcrumbs, struct {
+			Name   string
+			Slug   string
+		}{
+			Name:   name,
+			Slug:   slug,
+		})
+	}
+	
+	return breadcrumbs
+}
 
 templ WikiEntryContent(page utils.Page, saved bool) {
     if saved {
@@ -23,6 +49,18 @@ templ WikiEntryContent(page utils.Page, saved bool) {
     }
     <div class="flex items-start gap-4 md:ml-24 lg:ml-32 xl:ml-40 px-4 sm:px-6 lg:px-8 py-8">
         <div id="entry" class="prose prose-lg dark:prose-dark md:max-w-3xl lg:max-w-4xl xl:max-w-5xl md:border-l-4 md:border-neutral-200 md:dark:border-neutral-700 md:pl-8">
+            // Categories section
+            if len(page.Categories) > 0 {
+                <div class="mb-4 flex flex-wrap gap-2">
+                    for _, cat := range page.Categories {
+                        for _, breadcrumb := range buildCategoryBreadcrumbs(cat.FullSlug) {
+                            <a href={ templ.SafeURL(fmt.Sprintf("/pages?category=%s", breadcrumb.Slug)) } class="inline-flex no-underline items-center px-3 py-1 rounded-full text-xs font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors">
+                                { breadcrumb.Name }
+                            </a>
+                        }
+                    }
+                </div>
+            }
             @templ.Raw(utils.ToHTML(page.Content))
         </div>
         <!-- Inline edit button: visible on md+ screens only -->

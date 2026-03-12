@@ -40,7 +40,8 @@ INSERT INTO categories (slug, name, path) VALUES
     ('people', 'People', 'root.people'),
     ('buildings', 'Buildings', 'root.buildings'),
     ('departments', 'Departments', 'root.departments'),
-    ('student-life', 'Student Life', 'root.student_life'),
+    ('student-life', 'Student Life', 'root.student-life'),
+    ('about', 'About', 'root.about'),
     ('miscellaneous', 'Miscellaneous', 'root.miscellaneous');
 
 -- People subcategories
@@ -65,16 +66,36 @@ WHERE path = 'root.people.faculty';
 INSERT INTO page_categories (page_id, category) 
 SELECT '60b6b10c-db33-4b4c-9dcf-566f5b3c59a4', id 
 FROM categories 
-WHERE path = 'root.student_life';
-
--- dan-boone-deep-state → miscellaneous
-INSERT INTO page_categories (page_id, category) 
-SELECT '80d10989-2dbb-4d64-98a0-eb8739ccb77f', id 
-FROM categories 
-WHERE path = 'root.miscellaneous';
+WHERE path = 'root.student-life';
 
 -- spiritual-life → student-life
 INSERT INTO page_categories (page_id, category) 
 SELECT 'c32b2206-ca5f-407c-b6d0-89b7da1e4c2b', id 
 FROM categories 
-WHERE path = 'root.student_life';
+WHERE path = 'root.student-life';
+
+-- about pages → about
+INSERT INTO page_categories (page_id, category) 
+SELECT 'dcf043c9-b897-4444-9252-fcfc996b0db8', id 
+FROM categories 
+WHERE path = 'root.about';
+INSERT INTO page_categories (page_id, category) 
+SELECT 'f27287a0-06c0-4b01-8380-fb2ba3a318a8', id 
+FROM categories 
+WHERE path = 'root.about';
+INSERT INTO page_categories (page_id, category) 
+SELECT '1e5430e8-b398-4ed8-986e-71a4ade8228d', id 
+FROM categories 
+WHERE path = 'root.about';
+INSERT INTO page_categories (page_id, category) 
+SELECT '1cbe7062-1e76-401f-98e2-f71ca69a9480', id 
+FROM categories 
+WHERE path = 'root.about';
+INSERT INTO page_categories (page_id, category) 
+SELECT '44927247-4240-44c4-91fa-faac2b1d264e', id 
+FROM categories 
+WHERE path = 'root.about';
+INSERT INTO page_categories (page_id, category) 
+SELECT 'c32b2206-ca5f-407c-b6d0-89b7da1e4c2b', id 
+FROM categories 
+WHERE path = 'root.about';

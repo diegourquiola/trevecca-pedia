@@ -52,7 +52,7 @@ case "${1:-}" in
         for svc in "${ALL_SERVICES[@]}"; do
             STOP_FLAGS+=(--profile "$svc")
         done
-        docker compose "${STOP_FLAGS[@]}" down
+        docker compose "${STOP_FLAGS[@]}" down -v
         echo -e "\n${GREEN}All services stopped.${NC}"
         exit 0
         ;;
