@@ -17,11 +17,8 @@ func main() {
 
 	r.Static("./static", "static")
 	r.GET("/", wiki.GetHome)
-	r.GET("/pages/new", wiki.GetCreatePage)
-	r.POST("/pages/new", wiki.PostCreatePage)
+	r.GET("/pages", wiki.GetCategoryPages)
 	r.GET("/pages/:id", wiki.GetPage)
-	r.GET("/pages/:id/edit", wiki.GetEditPage)
-	r.POST("/pages/:id/edit", wiki.PostEditPage)
 	r.GET("/search", search.GetSearchPage)
 	r.GET("/login", auth.GetLoginPage)
 	r.GET("/profile", auth.GetProfilePage)
@@ -31,6 +28,17 @@ func main() {
 	r.POST("/auth/register", auth.PostRegister)
 	r.GET("/auth/me", auth.GetMe)
 	r.POST("/auth/logout", auth.PostLogout)
+
+	// Protected editing routes - require authentication
+	protected := r.Group("/")
+	protected.Use(auth.RequireAuth())
+	{
+		protected.GET("/pages/new", wiki.GetCreatePage)
+		protected.POST("/pages/new", wiki.PostCreatePage)
+		protected.GET("/pages/:id/edit", wiki.GetEditPage)
+		protected.POST("/pages/:id/edit", wiki.PostEditPage)
+		protected.POST("/update-preview", wiki.PostPreview)
+	}
 
 	r.GET("/image/*id", image.GetImage)
 

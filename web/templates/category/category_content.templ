@@ -1,0 +1,167 @@
+package category
+
+import (
+	"strings"
+	"web/utils"
+)
+
+func formatCategoryOption(depth int, name string) string {
+	if depth == 0 {
+		return name
+	}
+	indent := strings.Repeat("  ", depth-1)
+	return indent + "→ " + name
+}
+
+templ CategoryContent(currentSlug string, currentName string, categories []utils.Category, pages []utils.PageInfoPrev) {
+	<section class="py-12 sm:py-16 lg:py-20">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div class="flex flex-col lg:flex-row gap-8 lg:gap-12">
+			<!-- Main Content -->
+			<div id="category-main-content" class="flex-1 min-w-0 relative">
+				<!-- Loading indicator - pagedone.io style -->
+				<div id="category-loading" class="htmx-indicator absolute inset-0 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-sm z-10 flex items-center justify-center">
+					<div class="flex flex-col items-center gap-3">
+						<svg class="w-8 h-8 stroke-neutral-500 dark:stroke-neutral-400 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+							<path d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 9.27455 20.9097 6.80375 19.1414 4.93502" stroke="currentColor" class="stroke-inherit" stroke-width="2" stroke-linecap="round"/>
+						</svg>
+						<span class="text-sm text-neutral-500 dark:text-neutral-400">Loading...</span>
+					</div>
+				</div>
+				@CategoryHeader(currentSlug, currentName, categories)
+				@CategoryPagesList(currentName, pages)
+			</div>
+				<!-- Category Tree Sidebar (Desktop) -->
+				@CategoryTreeSidebar(categories, currentSlug)
+			</div>
+		</div>
+	</section>
+	@CategoryTreeScript()
+}
+
+templ CategoryHeader(currentSlug string, currentName string, categories []utils.Category) {
+	<div class="mb-8">
+		<div class="flex items-center gap-4 mb-4">
+			<a
+				href="/"
+				class="flex items-center gap-1.5 text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 transition-colors"
+			>
+				<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+				</svg>
+				Home
+			</a>
+		</div>
+		<div class="flex items-center justify-between gap-3">
+			<h1 class="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900 dark:text-neutral-100">
+				{ currentName }
+			</h1>
+			<!-- Mobile Category Toggle - Aligned to right -->
+			<div class="lg:hidden flex-shrink-0">
+				@MobileCategoryToggle(categories, currentSlug)
+			</div>
+		</div>
+	</div>
+}
+
+templ MobileCategoryToggle(categories []utils.Category, currentSlug string) {
+	<div class="relative">
+		<button
+			type="button"
+			class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-neutral-600 dark:text-neutral-300 hover:text-neutral-900 dark:hover:text-neutral-100 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-lg transition-colors"
+			onclick="toggleMobileCategories()"
+		>
+			<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+			</svg>
+			<span>Categories</span>
+			<svg id="mobile-categories-chevron" class="w-4 h-4 text-neutral-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+			</svg>
+		</button>
+		<!-- Mobile Dropdown Menu -->
+		<div
+			id="mobile-categories-menu"
+			class="hidden absolute left-0 top-full mt-1 w-64 bg-white dark:bg-neutral-800 rounded-lg border border-neutral-200 dark:border-neutral-700 shadow-lg z-50 max-h-96 overflow-y-auto"
+		>
+			<div class="p-2">
+				@CategoryTreeItems(categories, currentSlug, 0, "mobile")
+			</div>
+		</div>
+	</div>
+}
+
+templ CategoryPagesList(categoryName string, pages []utils.PageInfoPrev) {
+	<div>
+		<p class="text-sm text-neutral-500 dark:text-neutral-400 mb-6">
+			if len(pages) == 1 {
+				1 page
+			} else {
+				{ len(pages) } pages
+			}
+			if categoryName != "All Categories" {
+				in "{ categoryName }"
+			}
+		</p>
+		if len(pages) == 0 {
+			@EmptyCategory(categoryName)
+		} else {
+			@PagesList(pages)
+		}
+	</div>
+}
+
+templ EmptyCategory(categoryName string) {
+	<div class="p-6 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 border border-dashed border-neutral-300 dark:border-neutral-700">
+		<div class="flex items-start gap-4">
+			<div class="w-10 h-10 rounded-lg bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center flex-shrink-0">
+				<svg class="w-5 h-5 text-neutral-500 dark:text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+				</svg>
+			</div>
+			<div class="flex-1 min-w-0">
+				<h3 class="font-medium text-neutral-900 dark:text-neutral-100 mb-1">
+					No pages found
+				</h3>
+				<p class="text-sm text-neutral-500 dark:text-neutral-400">
+					There are no pages in "{ categoryName }" yet.
+				</p>
+			</div>
+		</div>
+	</div>
+}
+
+templ PagesList(pages []utils.PageInfoPrev) {
+	<div class="space-y-3">
+		for _, page := range pages {
+			<a href={ templ.SafeURL("/pages/" + page.Slug) } class="group block">
+				<div class="p-5 rounded-xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 hover:border-neutral-400 dark:hover:border-neutral-500 hover:shadow-md transition-all">
+					<div class="flex items-start gap-4">
+						<div class="w-10 h-10 rounded-lg bg-neutral-100 dark:bg-neutral-700 flex items-center justify-center flex-shrink-0">
+							<svg class="w-5 h-5 text-neutral-500 dark:text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+							</svg>
+						</div>
+						<div class="flex-1 min-w-0">
+							<h3 class="font-semibold text-neutral-900 dark:text-neutral-100 group-hover:text-neutral-700 dark:group-hover:text-neutral-300 transition-colors">
+								{ page.Name }
+							</h3>
+							<div class="mt-1 text-sm text-neutral-500 dark:text-neutral-400 line-clamp-2">
+								@templ.Raw(utils.ToHTMLPreview(page.Preview))
+							</div>
+							<div class="mt-2 flex items-center gap-2 text-xs text-neutral-400 dark:text-neutral-500">
+								<svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+								</svg>
+								<span>Last edited { page.LastEditTime.Format("Jan 2, 2006") }</span>
+							</div>
+						</div>
+						<svg class="w-5 h-5 text-neutral-300 dark:text-neutral-600 group-hover:text-neutral-500 dark:group-hover:text-neutral-400 transition-colors flex-shrink-0 self-center" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+						</svg>
+					</div>
+				</div>
+			</a>
+		}
+	</div>
+}

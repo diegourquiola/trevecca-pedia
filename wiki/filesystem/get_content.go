@@ -59,7 +59,8 @@ func GetPagePreview(ctx context.Context, db *sql.DB, dataDir string, pageId uuid
 	content = regexp.MustCompile(`(?m)^[-*]{3,}\s*$`).ReplaceAllString(content, "")
 
 	// Convert headings (# Heading) to bold (**Heading**)
-	content = regexp.MustCompile(`(?m)^#{1,6}\s+(.+)$`).ReplaceAllString(content, "**$1**")
+	content = regexp.MustCompile(`(?m)^#{1,6}\s+(.+?)\s*$`).ReplaceAllString(content, "**$1**")
+
 
 	// Remove newlines
 	content = strings.ReplaceAll(content, "\n", " ")

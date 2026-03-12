@@ -9,6 +9,7 @@ import (
 	"wiki/utils"
 
 	"github.com/google/uuid"
+	"github.com/lib/pq"
 )
 
 func GetPage(ctx context.Context, db *sql.DB, dataDir string, id string) (utils.Page, error) {
@@ -121,47 +122,68 @@ func GetPagesBySlugs(ctx context.Context, db *sql.DB, dataDir string, slugList [
 	return pages
 }
 
-func GetPagesCategory(ctx context.Context, db *sql.DB, dataDir string, cat int, ind int, count int) ([]utils.PageInfoPrev, error) {
+func GetPagesCategory(ctx context.Context, db *sql.DB, dataDir string,
+	catSlug string, ind int, count int, exact bool) ([]utils.PageInfoPrev, error) {
+
+	var categoryIds []int
+	var err error
+
+	if exact {
+		cat, err := database.GetCategoryBySlugPath(ctx, db, catSlug)
+		if err != nil {
+			return nil, err
+		}
+		categoryIds = []int{cat.ID}
+	} else {
+		categoryIds, err = database.GetDescendantCategoryIDs(ctx, db, catSlug)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	var pagesCount int
-	err := db.QueryRowContext(
-		ctx,
-		`SELECT COUNT(*) FROM pages
-		JOIN page_categories ON pages.uuid = page_categories.page_id
-		WHERE page_categories.category=$1 AND pages.deleted_at IS NULL`,
-		cat).Scan(&pagesCount)
-	if pagesCount != 0 && err != nil {
+	err = db.QueryRowContext(ctx, `
+		SELECT COUNT(DISTINCT p.uuid) FROM pages p
+		JOIN page_categories pc ON p.uuid = pc.page_id
+		WHERE pc.category = ANY($1) AND p.deleted_at IS NULL;
+	`, pq.Array(categoryIds)).Scan(&pagesCount)
+	if err != nil {
 		return nil, wikierrors.DatabaseError(err)
 	}
+
 	pagesCount -= ind
 	if pagesCount <= 0 {
 		return []utils.PageInfoPrev{}, nil
 	}
 
-	uuids, err := db.QueryContext(
-		ctx,
-		`SELECT uuid FROM pages
-		JOIN page_categories ON pages.uuid = page_categories.page_id
-		WHERE page_categories.category=$1 AND pages.deleted_at IS NULL
-		LIMIT $2 OFFSET $3`,
-		cat, count, ind)
+	uuids, err := db.QueryContext(ctx, `
+		SELECT DISTINCT p.uuid, p.slug FROM pages p
+		JOIN page_categories pc ON p.uuid = pc.page_id
+		WHERE pc.category = ANY($1) AND p.deleted_at IS NULL
+		ORDER BY p.slug
+		LIMIT $2 OFFSET $3;
+
+	`, pq.Array(categoryIds), count, ind)
 	if err != nil {
 		return nil, wikierrors.DatabaseError(err)
 	}
 	defer uuids.Close()
 
 	var pages []utils.PageInfoPrev
-
 	for uuids.Next() {
-		var id uuid.UUID
-		uuids.Scan(&id)
-		pageInfo, err := utils.GetPageInfoPreview(ctx, db, dataDir, id)
+		var pageUUID uuid.UUID
+		var slug string
+		err := uuids.Scan(&pageUUID, &slug)
 		if err != nil {
 			return nil, wikierrors.DatabaseError(err)
 		}
-		if pageInfo == nil {
-			continue
+		page, err := utils.GetPageInfoPreview(ctx, db, dataDir, pageUUID)
+		if err != nil {
+			return nil, wikierrors.DatabaseError(err)
 		}
-		pages = append(pages, *pageInfo)
+		if page != nil {
+			pages = append(pages, *page)
+		}
 	}
 
 	return pages, nil
@@ -189,6 +211,7 @@ func GetRevision(ctx context.Context, db *sql.DB, dataDir string, revId string) 
 	if revInfo == nil || revInfo.PageId == nil {
 		return utils.Revision{}, wikierrors.RevisionNotFound()
 	}
+
 	pageInfo, err := database.GetPageInfo(ctx, db, *revInfo.PageId)
 	if err == sql.ErrNoRows {
 		return utils.Revision{}, wikierrors.PageNotFound()
@@ -196,6 +219,7 @@ func GetRevision(ctx context.Context, db *sql.DB, dataDir string, revId string) 
 	if err != nil {
 		return utils.Revision{}, wikierrors.DatabaseError(err)
 	}
+
 	pageDeleted, err := database.GetPageDeleted(ctx, db, pageInfo.UUID)
 	if err != nil {
 		return utils.Revision{}, wikierrors.DatabaseError(err)
@@ -203,6 +227,7 @@ func GetRevision(ctx context.Context, db *sql.DB, dataDir string, revId string) 
 	if pageDeleted {
 		return utils.Revision{}, wikierrors.PageDeleted()
 	}
+
 	rev.PageId = *revInfo.PageId
 	rev.RevDateTime = *revInfo.DateTime
 	rev.Author = *revInfo.Author
@@ -210,7 +235,6 @@ func GetRevision(ctx context.Context, db *sql.DB, dataDir string, revId string) 
 	rev.Name = revInfo.Name
 	rev.ArchiveDate = revInfo.ArchiveDate
 	rev.DeletedAt = revInfo.DeletedAt
-
 
 	rev.Content, err = utils.GetContentAtRevision(ctx, db, dataDir, rev.PageId, rev.UUID)
 	if err != nil {

@@ -31,13 +31,71 @@ INSERT INTO snapshots VALUES ('94bf862a-05be-4d84-8c04-609bbc4b6638', '44927247-
 INSERT INTO snapshots VALUES ('fc6037c1-296c-4ffa-be7f-b81b893680c8', 'c32b2206-ca5f-407c-b6d0-89b7da1e4c2b', 'a9519a06-c79d-4f41-a3e4-0cb919d0127c');
 INSERT INTO snapshots VALUES ('84c4b112-3bf5-48cc-ad91-b939b5282382', '175dea54-84ec-4cae-bdff-f9297c5538ce', '3894d52e-3df9-4069-9c2a-be429fc68d86');
 
-INSERT INTO categories (slug, name) VALUES ('people', 'People');
-INSERT INTO categories (slug, name) VALUES ('buildings', 'Buildings');
-INSERT INTO categories (slug, name) VALUES ('departments', 'Departments');
-INSERT INTO categories (slug, name) VALUES ('student-life', 'Student Life');
-INSERT INTO categories (slug, name) VALUES ('miscellaneous', 'Miscellaneous');
+-- ============================================================================
+-- Hierarchical Categories Seed Data
+-- ============================================================================
 
-INSERT INTO page_categories VALUES ('07918316-875e-4581-87ab-5b8d1d8bdd3a', '1');
-INSERT INTO page_categories VALUES ('60b6b10c-db33-4b4c-9dcf-566f5b3c59a4', '4');
-INSERT INTO page_categories VALUES ('80d10989-2dbb-4d64-98a0-eb8739ccb77f', '5');
-INSERT INTO page_categories VALUES ('c32b2206-ca5f-407c-b6d0-89b7da1e4c2b', '4');
+-- Root categories (no parent_id)
+INSERT INTO categories (slug, name, path) VALUES 
+    ('people', 'People', 'root.people'),
+    ('buildings', 'Buildings', 'root.buildings'),
+    ('departments', 'Departments', 'root.departments'),
+    ('student-life', 'Student Life', 'root.student-life'),
+    ('about', 'About', 'root.about'),
+    ('miscellaneous', 'Miscellaneous', 'root.miscellaneous');
+
+-- People subcategories
+INSERT INTO categories (slug, name, parent_id, path) VALUES 
+    ('faculty', 'Faculty', (SELECT id FROM categories WHERE slug='people'), 'root.people.faculty'),
+    ('staff', 'Staff', (SELECT id FROM categories WHERE slug='people'), 'root.people.staff'),
+    ('students', 'Students', (SELECT id FROM categories WHERE slug='people'), 'root.people.students');
+
+-- Buildings subcategories  
+INSERT INTO categories (slug, name, parent_id, path) VALUES 
+    ('academic', 'Academic', (SELECT id FROM categories WHERE slug='buildings'), 'root.buildings.academic'),
+    ('residential', 'Residential', (SELECT id FROM categories WHERE slug='buildings'), 'root.buildings.residential');
+
+-- Page category assignments using hierarchical category paths
+-- dan-boone → people/faculty
+INSERT INTO page_categories (page_id, category) 
+SELECT '07918316-875e-4581-87ab-5b8d1d8bdd3a', id 
+FROM categories 
+WHERE path = 'root.people.faculty';
+
+-- newsies → student-life (root category)
+INSERT INTO page_categories (page_id, category) 
+SELECT '60b6b10c-db33-4b4c-9dcf-566f5b3c59a4', id 
+FROM categories 
+WHERE path = 'root.student-life';
+
+-- spiritual-life → student-life
+INSERT INTO page_categories (page_id, category) 
+SELECT 'c32b2206-ca5f-407c-b6d0-89b7da1e4c2b', id 
+FROM categories 
+WHERE path = 'root.student-life';
+
+-- about pages → about
+INSERT INTO page_categories (page_id, category) 
+SELECT 'dcf043c9-b897-4444-9252-fcfc996b0db8', id 
+FROM categories 
+WHERE path = 'root.about';
+INSERT INTO page_categories (page_id, category) 
+SELECT 'f27287a0-06c0-4b01-8380-fb2ba3a318a8', id 
+FROM categories 
+WHERE path = 'root.about';
+INSERT INTO page_categories (page_id, category) 
+SELECT '1e5430e8-b398-4ed8-986e-71a4ade8228d', id 
+FROM categories 
+WHERE path = 'root.about';
+INSERT INTO page_categories (page_id, category) 
+SELECT '1cbe7062-1e76-401f-98e2-f71ca69a9480', id 
+FROM categories 
+WHERE path = 'root.about';
+INSERT INTO page_categories (page_id, category) 
+SELECT '44927247-4240-44c4-91fa-faac2b1d264e', id 
+FROM categories 
+WHERE path = 'root.about';
+INSERT INTO page_categories (page_id, category) 
+SELECT 'c32b2206-ca5f-407c-b6d0-89b7da1e4c2b', id 
+FROM categories 
+WHERE path = 'root.about';

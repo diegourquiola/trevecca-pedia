@@ -26,17 +26,22 @@ So, calls to the `wiki` service begin with: `/v1/wiki`
 
 | Type      | Route                                     | Arguments                 | Description       |
 | ---       | ---                                       | ---                       | ---               |
-| `GET`     | `/pages{?index=ind&count=n&slugs=a,b,c}`  | `index`, `count`, `slugs` | Returns a list of page info and content.  |
+| `GET`     | `/pages{?index=ind&count=n&category=c&slugs=a,b,c&exact=bool}` | `index`, `count`, `category`, `slugs`, `exact` | Returns a list of page info and content.  |
 | `GET`     | `/pages/:id`                              | `:id`                     | Returns the info and content for the specified page. |
 | `GET`     | `/pages/:id/revisions{?index=ind&count=n}`| `:id`, `index`, `count`   | Returns a list of the revisions for the specified page. |
 | `GET`     | `/pages/:id/revisions/:rev`               | `:id`, `:rev`             | Returns the info and content for the specified revision of the specified page. |
 | `GET`     | `/indexable-pages{?index=ind&count=n}`    | `index`, `count`          | Returns a list of indexable pages for search indexing. |
+| `GET`     | `/categories{?tree=bool&root=bool}`       | `tree`, `root`            | Returns all categories. |
+| `GET`     | `/pages/:id/categories`                   | `:id`                     | Returns categories assigned to the specified page. |
 
 #### Arguments
 `index`: the index to be the first item  
 `count`: the count of entries to retrieve  
-\[DON'T USE\] `category`: filter pages by category (category name or id)  
+`tree`: if "true", returns categories in tree structure with parent-child relationships  
+`root`: if "true", returns only root-level categories  
+`category`: filter pages by category (category slug)  
 `slugs`: comma-separated list of specific slugs to retrieve  
+`exact`: if "true", enables exact matching for category/slug filters  
 `:id`: the slug (or uuid) of the page  
 `:rev`: the uuid of the page revision  
 `{}`: content in curly braces is optional  
@@ -60,6 +65,7 @@ So, calls to the `wiki` service begin with: `/v1/wiki`
 | `POST`    | `/pages/new`                              | N/A                   | Creates a new page entry with the submitted info.  |
 | `POST`    | `/pages/:id/delete`                       | `:id`                 | Deletes the specified page.    |
 | `POST`    | `/pages/:id/revisions`                    | `:id`                 | Creates a new revision of the specified page. |
+| `POST`    | `/pages/:id/categories`                   | `:id`                 | Updates categories for the specified page. |
 
 #### `/pages/new`
 This is implemented using a multipart form, with the fields being passed in as form data.  This is useful because it allows the `new_page` file to be passed in as a file, rather than just a string.  
@@ -105,6 +111,18 @@ This is implemented using a multipart form, with the fields being passed in as f
     - not really implemented yet. using student email username for now, but that definitely won't be the actual implementation.  
 `new_content`: the markdown file with the new page content  
 
+#### `/pages/:id/categories`
+Updates categories assigned to the specified page. Accepts a JSON array of category IDs.
+
+**Type:** `POST`
+**Arguments:**
+`:id`: the slug (or uuid) of the page
+
+**Request Body:** JSON array of category IDs (UUIDs)
+```json
+["category-uuid-1", "category-uuid-2"]
+```
+
 ---
 
 ## Example (Server-to-Server)
@@ -129,4 +147,27 @@ curl -X POST "${API_LAYER_URL:-http://127.0.0.1:2745}/v1/wiki/pages/example-page
   -F "page_id=example-page" \
   -F "author=username" \
   -F "new_content=@./page.md"
+```
+
+Get all categories:
+```bash
+curl -X GET "${API_LAYER_URL:-http://127.0.0.1:2745}/v1/wiki/categories"
+```
+
+Get categories in tree structure:
+```bash
+curl -X GET "${API_LAYER_URL:-http://127.0.0.1:2745}/v1/wiki/categories?tree=true"
+```
+
+Get categories for a specific page:
+```bash
+curl -X GET "${API_LAYER_URL:-http://127.0.0.1:2745}/v1/wiki/pages/example-page/categories"
+```
+
+Update categories for a page:
+```bash
+curl -X POST "${API_LAYER_URL:-http://127.0.0.1:2745}/v1/wiki/pages/example-page/categories" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '["category-uuid-1", "category-uuid-2"]'
 ```

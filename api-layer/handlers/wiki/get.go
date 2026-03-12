@@ -21,9 +21,10 @@ func GetPages(c *gin.Context) {
 	if err != nil {
 		count = 10
 	}
+	exact := c.DefaultQuery("exact", "false")
 
-	res, err := http.Get(fmt.Sprintf("%s/pages?category=%s&slugs=%s&index=%d&count=%d",
-		config.WikiServiceURL, catQuery, slugsQuery, ind, count))
+	res, err := http.Get(fmt.Sprintf("%s/pages?category=%s&slugs=%s&index=%d&count=%d&exact=%s",
+		config.WikiServiceURL, catQuery, slugsQuery, ind, count, exact))
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch pages."})
 		return
@@ -119,4 +120,43 @@ func GetIndexablePages(c *gin.Context) {
 		return
 	}
 	c.Data(resp.StatusCode, resp.Header.Get("Content-Type"), body)
+}
+
+func GetCategories(c *gin.Context) {
+	tree := c.DefaultQuery("tree", "false")
+	root := c.DefaultQuery("root", "false")
+
+	res, err := http.Get(fmt.Sprintf("%s/categories?tree=%s&root=%s",
+		config.WikiServiceURL, tree, root))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch categories."})
+		return
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to read response"})
+		return
+	}
+
+	c.Data(res.StatusCode, res.Header.Get("Content-Type"), body)
+}
+
+func GetPageCategories(c *gin.Context) {
+	id := c.Param("id")
+	res, err := http.Get(fmt.Sprintf("%s/pages/%s/categories", config.WikiServiceURL, id))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch page categories."})
+		return
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "Failed to read response"})
+		return
+	}
+
+	c.Data(res.StatusCode, res.Header.Get("Content-Type"), body)
 }

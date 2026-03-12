@@ -4,46 +4,98 @@ import "web/utils"
 import "fmt"
 
 templ WikiEditContent(page utils.Page, errMsg string) {
-	<div class="max-w-4xl mx-auto px-4 py-8">
-		<div class="mb-6">
-			<h1 class="text-2xl font-bold">Editing: { page.Name }</h1>
-			<a
-				href={ templ.SafeURL(fmt.Sprintf("/pages/%s", page.Slug)) }
-				class="text-sm text-blue-600 hover:underline mt-1 inline-block"
-			>
-				&larr; Cancel, go back
-			</a>
-		</div>
-		if errMsg != "" {
-			<div class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-				<p class="text-sm font-medium text-red-800">Unable to save changes</p>
-				<p class="text-sm text-red-600 mt-1">{ errMsg }</p>
+	<div class="flex flex-col h-[calc(100vh-4rem)] overflow-hidden">
+		<!-- Header with title -->
+		<div class="flex-none p-4 lg:p-6 pb-2 lg:pb-0">
+			<div class="mb-3">
+				<div class="flex items-center justify-between">
+					<h1 class="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Editing: { page.Name }</h1>
+					<a
+						href={ templ.SafeURL(fmt.Sprintf("/pages/%s", page.Slug)) }
+						class="text-sm text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200"
+					>
+						&larr; Cancel
+					</a>
+				</div>
 			</div>
-		}
-		<form
-			action={ templ.SafeURL(fmt.Sprintf("/pages/%s/edit", page.Slug)) }
-			method="POST"
-			class="space-y-4"
-		>
-			<textarea
-				name="content"
-				class="w-full h-96 font-mono text-sm p-4 border border-gray-300 rounded-lg focus:outline-none resize-y"
-				spellcheck="false"
-			>{ page.Content }</textarea>
-			<div class="flex gap-3">
+			if errMsg != "" {
+				<div class="mb-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+					<p class="text-sm font-medium text-red-800 dark:text-red-200">Unable to save changes</p>
+					<p class="text-sm text-red-600 dark:text-red-300 mt-1">{ errMsg }</p>
+				</div>
+			}
+			<!-- Mobile tabs (visible only on small screens) -->
+			<div class="lg:hidden flex border-b border-neutral-200 dark:border-neutral-700 mt-4">
 				<button
-					type="submit"
-					class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+					id="mobile-edit-tab"
+					onclick="switchMobileEditTab('edit')"
+					class="flex-1 py-2 text-center text-sm font-medium border-b-2 border-neutral-900 dark:border-neutral-100 text-neutral-900 dark:text-neutral-100 transition-colors"
 				>
-					Save Changes
+					Edit
 				</button>
-				<a
-					href={ templ.SafeURL(fmt.Sprintf("/pages/%s", page.Slug)) }
-					class="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 font-medium"
+				<button
+					id="mobile-preview-tab"
+					onclick="switchMobileEditTab('preview')"
+					class="flex-1 py-2 text-center text-sm font-medium border-b-2 border-transparent text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors"
 				>
-					Cancel
-				</a>
+					Preview
+				</button>
 			</div>
-		</form>
+		</div>
+		
+		<!-- Main content area -->
+		<div class="flex-1 flex flex-col lg:flex-row min-h-0">
+			<!-- Editor panel -->
+			<div
+				id="mobile-editor-panel"
+				class="w-full lg:w-1/2 h-full flex flex-col lg:border-r border-neutral-200 dark:border-neutral-800"
+			>
+				<form
+					action={ templ.SafeURL(fmt.Sprintf("/pages/%s/edit", page.Slug)) }
+					method="POST"
+					class="flex-1 flex flex-col min-h-0 px-4 lg:px-6"
+				>
+					<div class="flex-none">
+						@EditorToolbar()
+					</div>
+					<textarea
+						id="edit-textarea"
+						name="content"
+						class="flex-1 w-full min-h-0 font-mono text-sm p-4 bg-neutral-50 dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 border-none focus:outline-none focus:ring-2 focus:ring-neutral-300 dark:focus:ring-neutral-700 resize-none"
+						spellcheck="false"
+						data-slug={ page.Slug }
+					>{ page.Content }</textarea>
+					<div class="flex-none flex gap-3 py-3 border-t border-neutral-200 dark:border-neutral-800">
+						<button
+							type="submit"
+							class="px-6 py-2 bg-neutral-900 dark:bg-neutral-100 text-white dark:text-neutral-900 rounded-lg hover:bg-neutral-700 dark:hover:bg-neutral-300 font-medium transition-colors"
+						>
+							Save Changes
+						</button>
+						<a
+							href={ templ.SafeURL(fmt.Sprintf("/pages/%s", page.Slug)) }
+							class="px-6 py-2 border border-neutral-300 dark:border-neutral-600 rounded-lg hover:bg-neutral-100 dark:hover:bg-neutral-800 font-medium transition-colors"
+						>
+							Cancel
+						</a>
+					</div>
+				</form>
+			</div>
+			
+			<!-- Preview panel -->
+			<div
+				id="mobile-preview-panel"
+				class="hidden lg:flex w-full lg:w-1/2 h-full flex-col p-4 lg:p-6 bg-neutral-50 dark:bg-neutral-900/50"
+			>
+				<div class="flex-none mb-3 lg:mb-3">
+					<h2 class="text-lg font-semibold text-neutral-800 dark:text-neutral-200">Preview</h2>
+				</div>
+				<div class="flex-1 overflow-auto min-h-0">
+					<div id="entry" class="prose prose-lg dark:prose-invert max-w-none">
+						<p class="text-neutral-400 dark:text-neutral-600 italic">Start typing to see preview...</p>
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
 }

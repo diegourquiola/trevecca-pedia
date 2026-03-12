@@ -2,9 +2,11 @@ package components
 
 import "web/utils"
 
-templ HomeContent(pages []utils.PageInfoPrev) {
+templ HomeContent(categories []utils.Category) {
 	@HeroSection()
-	@PagesDrawer(pages)
+	if len(categories) > 0 {
+		@CategoryCards(categories)
+	}
 }
 
 templ HeroSection() {
@@ -43,46 +45,63 @@ templ HeroSection() {
 	</section>
 }
 
-templ PagesDrawer(pages []utils.PageInfoPrev) {
-	<section class="border-t border-neutral-200 dark:border-neutral-800">
-		<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-			<button 
-				onclick="togglePagesDrawer()"
-				class="w-full flex items-center justify-between py-4 text-left group"
+templ CategoryCards(categories []utils.Category) {
+	<section class="pb-16">
+		<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div
+				class="grid grid-cols-2 lg:grid-cols-4 gap-5"
+				style="perspective: 1000px;"
 			>
-				<div class="flex items-center gap-3">
-					<svg class="w-5 h-5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-					</svg>
-					<h2 class="text-lg font-semibold text-neutral-800 dark:text-neutral-200">
-						Browse Pages ({ len(pages) })
-					</h2>
-				</div>
-				<svg id="drawer-chevron" class="w-5 h-5 text-neutral-400 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-				</svg>
-			</button>
-			<div id="pages-drawer" class="hidden">
-				@PageList(pages)
+				<a
+					href={ templ.SafeURL("/pages") }
+					class="category-card group block rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 px-6 py-10 text-center transition-all duration-300 hover:shadow-lg hover:shadow-neutral-300/50 dark:hover:shadow-md dark:hover:shadow-neutral-400/15"
+					style="transform-style: preserve-3d; will-change: transform;"
+					onmousemove="tiltCard(event, this)"
+					onmouseleave="resetCard(this)"
+				>
+					<h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 group-hover:text-neutral-600 dark:group-hover:text-neutral-300 transition-colors duration-200">
+						All Categories
+					</h3>
+				</a>
+				for _, cat := range categories {
+					<a
+						href={ templ.SafeURL("/pages?category=" + cat.Slug) }
+						class="category-card group block rounded-2xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 px-6 py-10 text-center transition-all duration-300 hover:shadow-lg hover:shadow-neutral-300/50 dark:hover:shadow-md dark:hover:shadow-neutral-400/15"
+						style="transform-style: preserve-3d; will-change: transform;"
+						onmousemove="tiltCard(event, this)"
+						onmouseleave="resetCard(this)"
+					>
+						<h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 group-hover:text-neutral-600 dark:group-hover:text-neutral-300 transition-colors duration-200">
+							{ cat.Name }
+						</h3>
+					</a>
+				}
 			</div>
 		</div>
 	</section>
-}
-
-templ PageList(pages []utils.PageInfoPrev) {
-	<div class="grid gap-2 py-4">
-		for _, page := range pages {
-			<a href={ "./pages/" + page.Slug } class="group block">
-				<div class="p-4 rounded-xl bg-neutral-50 dark:bg-neutral-800/50 border border-neutral-100 dark:border-neutral-800 hover:border-neutral-300 dark:hover:border-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all">
-					<h3 class="font-medium text-neutral-900 dark:text-neutral-100 group-hover:text-neutral-700 dark:group-hover:text-neutral-300 transition-colors">
-						{ page.Name }
-					</h3>
-					<div class="mt-1 text-sm text-neutral-500 dark:text-neutral-400 line-clamp-2">
-                        <!-- { page.Preview } -->
-						@templ.Raw(utils.ToHTMLPreview(page.Preview))
-					</div>
-				</div>
-			</a>
+	<script>
+		function isDark() {
+			return document.documentElement.classList.contains('dark');
 		}
-	</div>
+		function tiltCard(e, el) {
+			const rect = el.getBoundingClientRect();
+			const x = e.clientX - rect.left;
+			const y = e.clientY - rect.top;
+			const centerX = rect.width / 2;
+			const centerY = rect.height / 2;
+			const rotateX = ((y - centerY) / centerY) * -8;
+			const rotateY = ((x - centerX) / centerX) * 8;
+			const shadow = isDark()
+				? '0 12px 24px rgba(200, 200, 200, 0.07), 0 4px 10px rgba(255, 255, 255, 0.04)'
+				: '0 12px 24px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.05)';
+			el.style.transform = 'translateY(-6px) scale(1.03) rotateX(' + rotateX + 'deg) rotateY(' + rotateY + 'deg)';
+			el.style.boxShadow = shadow;
+			el.style.transition = 'transform 0.1s ease-out, box-shadow 0.3s ease';
+		}
+		function resetCard(el) {
+			el.style.transform = 'translateY(0) scale(1) rotateX(0deg) rotateY(0deg)';
+			el.style.boxShadow = '';
+			el.style.transition = 'transform 0.4s ease, box-shadow 0.3s ease';
+		}
+	</script>
 }

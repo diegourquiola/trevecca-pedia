@@ -1,0 +1,166 @@
+package wikipages
+
+templ EditorToolbar() {
+	<div id="editor-toolbar" class="flex flex-wrap items-center gap-0.5 p-2 mb-1 border border-neutral-200 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-800">
+		<!-- Text formatting -->
+		<button
+			type="button"
+			data-action="bold"
+			title="Bold (Ctrl+B)"
+			class="p-1.5 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 transition-colors"
+		>
+			<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+				<path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
+				<path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"></path>
+			</svg>
+		</button>
+		<button
+			type="button"
+			data-action="italic"
+			title="Italic (Ctrl+I)"
+			class="p-1.5 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 transition-colors"
+		>
+			<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<line x1="19" y1="4" x2="10" y2="4"></line>
+				<line x1="14" y1="20" x2="5" y2="20"></line>
+				<line x1="15" y1="4" x2="9" y2="20"></line>
+			</svg>
+		</button>
+		<!-- Separator -->
+		<div class="w-px h-5 bg-neutral-200 dark:bg-neutral-600 mx-1"></div>
+		<!-- Headings -->
+		<button
+			type="button"
+			data-action="heading1"
+			title="Heading 1"
+			class="px-1.5 py-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 transition-colors text-xs font-bold"
+		>
+			H1
+		</button>
+		<button
+			type="button"
+			data-action="heading2"
+			title="Heading 2"
+			class="px-1.5 py-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 transition-colors text-xs font-bold"
+		>
+			H2
+		</button>
+		<button
+			type="button"
+			data-action="heading3"
+			title="Heading 3"
+			class="px-1.5 py-1 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 transition-colors text-xs font-bold"
+		>
+			H3
+		</button>
+		<!-- Separator -->
+		<div class="w-px h-5 bg-neutral-200 dark:bg-neutral-600 mx-1"></div>
+		<!-- Link & Image -->
+		<button
+			type="button"
+			data-action="link"
+			title="Insert Link (Ctrl+K)"
+			class="p-1.5 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 transition-colors"
+		>
+			<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+				<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+			</svg>
+		</button>
+		<button
+			type="button"
+			data-action="image"
+			title="Insert Image"
+			class="p-1.5 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 transition-colors"
+		>
+			<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+				<circle cx="8.5" cy="8.5" r="1.5"></circle>
+				<polyline points="21 15 16 10 5 21"></polyline>
+			</svg>
+		</button>
+		<!-- Separator -->
+		<div class="w-px h-5 bg-neutral-200 dark:bg-neutral-600 mx-1"></div>
+		<!-- Lists -->
+		<button
+			type="button"
+			data-action="unordered-list"
+			title="Bullet List"
+			class="p-1.5 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 transition-colors"
+		>
+			<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<line x1="8" y1="6" x2="21" y2="6"></line>
+				<line x1="8" y1="12" x2="21" y2="12"></line>
+				<line x1="8" y1="18" x2="21" y2="18"></line>
+				<line x1="3" y1="6" x2="3.01" y2="6"></line>
+				<line x1="3" y1="12" x2="3.01" y2="12"></line>
+				<line x1="3" y1="18" x2="3.01" y2="18"></line>
+			</svg>
+		</button>
+		<button
+			type="button"
+			data-action="ordered-list"
+			title="Numbered List"
+			class="p-1.5 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 transition-colors"
+		>
+			<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<line x1="10" y1="6" x2="21" y2="6"></line>
+				<line x1="10" y1="12" x2="21" y2="12"></line>
+				<line x1="10" y1="18" x2="21" y2="18"></line>
+				<path d="M4 6h1v4"></path>
+				<path d="M4 10h2"></path>
+				<path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1"></path>
+			</svg>
+		</button>
+		<!-- Separator -->
+		<div class="w-px h-5 bg-neutral-200 dark:bg-neutral-600 mx-1"></div>
+		<!-- Blockquote -->
+		<button
+			type="button"
+			data-action="blockquote"
+			title="Blockquote"
+			class="p-1.5 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 transition-colors"
+		>
+			<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+				<path d="M4.583 17.321C3.553 16.227 3 15 3 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179zm10 0C13.553 16.227 13 15 13 13.011c0-3.5 2.457-6.637 6.03-8.188l.893 1.378c-3.335 1.804-3.987 4.145-4.247 5.621.537-.278 1.24-.375 1.929-.311 1.804.167 3.226 1.648 3.226 3.489a3.5 3.5 0 01-3.5 3.5c-1.073 0-2.099-.49-2.748-1.179z"></path>
+			</svg>
+		</button>
+		<!-- Code -->
+		<button
+			type="button"
+			data-action="inline-code"
+			title="Inline Code"
+			class="p-1.5 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 transition-colors"
+		>
+			<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<polyline points="16 18 22 12 16 6"></polyline>
+				<polyline points="8 6 2 12 8 18"></polyline>
+			</svg>
+		</button>
+		<button
+			type="button"
+			data-action="code-block"
+			title="Code Block"
+			class="p-1.5 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 transition-colors"
+		>
+			<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+				<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+				<polyline points="8 7 12 11 8 15"></polyline>
+				<line x1="14" y1="15" x2="18" y2="15"></line>
+			</svg>
+		</button>
+		<!-- Separator -->
+		<div class="w-px h-5 bg-neutral-200 dark:bg-neutral-600 mx-1"></div>
+		<!-- Horizontal Rule -->
+		<button
+			type="button"
+			data-action="horizontal-rule"
+			title="Horizontal Rule"
+			class="p-1.5 rounded hover:bg-neutral-100 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 transition-colors"
+		>
+			<svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+				<line x1="3" y1="12" x2="21" y2="12"></line>
+			</svg>
+		</button>
+	</div>
+}

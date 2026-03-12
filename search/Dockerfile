@@ -42,7 +42,7 @@ RUN chown -R appuser:appuser /app
 USER appuser
 
 # Set default environment variables
-ENV SEARCH_INDEX_DIR=/index
+ENV INDEX_DIR=/index
 
 # Expose the port the app runs on
 EXPOSE 7724

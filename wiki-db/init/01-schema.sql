@@ -1,3 +1,5 @@
+CREATE EXTENSION IF NOT EXISTS ltree;
+
 CREATE TABLE pages (
     uuid                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     slug                TEXT NOT NULL UNIQUE,
@@ -40,11 +42,47 @@ CREATE TRIGGER trg_update_last_revision
 AFTER INSERT ON revisions
 FOR EACH ROW EXECUTE FUNCTION update_last_revision();
 
+-- Hierarchical Categories Table
 CREATE TABLE categories (
     id              SERIAL PRIMARY KEY,
     slug            TEXT UNIQUE NOT NULL,
-    name            TEXT UNIQUE NOT NULL
+    name            TEXT UNIQUE NOT NULL,
+    parent_id       INTEGER REFERENCES categories(id) ON DELETE CASCADE,
+    path            LTREE NOT NULL DEFAULT 'root',
+    CONSTRAINT chk_slug_format CHECK (slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$')
 );
+
+-- Category indexes for hierarchical queries
+CREATE INDEX idx_categories_path ON categories USING GIST(path);
+CREATE INDEX idx_categories_parent ON categories(parent_id);
+
+-- Circular reference prevention trigger
+CREATE OR REPLACE FUNCTION check_category_circular_reference()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Prevent a category from being its own parent
+    IF NEW.parent_id = NEW.id THEN
+        RAISE EXCEPTION 'Category cannot be its own parent';
+    END IF;
+    
+    -- Prevent circular references via path check
+    IF NEW.parent_id IS NOT NULL THEN
+        IF EXISTS (
+            SELECT 1 FROM categories 
+            WHERE id = NEW.parent_id 
+            AND NEW.path @> path
+        ) THEN
+            RAISE EXCEPTION 'Circular reference detected: parent is already a descendant';
+        END IF;
+    END IF;
+    
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_check_category_circular
+BEFORE INSERT OR UPDATE ON categories
+FOR EACH ROW EXECUTE FUNCTION check_category_circular_reference();
 
 CREATE TABLE page_categories (
     page_id         UUID REFERENCES pages(uuid) ON DELETE CASCADE NOT NULL,

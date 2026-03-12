@@ -22,6 +22,9 @@ Inside each service directory is a `README.md` for info on deploying and using t
 - [Wiki Filesystem](./wiki-fs/README.md)
 - [Search](./search/README.md)
 
+We also have a more streamlined Docker Compose setup for local development.  There are a lot of services involved, so we highly recommend it.
+You can read more about it in our [Development Docs](./docs/DEVELOPMENT.md).
+
 ## Common Tools
 
 You will have to install these in order to run the services.

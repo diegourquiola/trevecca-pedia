@@ -15,7 +15,20 @@ type imageAltOnlyRenderer struct{}
 
 func (imageAltOnlyRenderer) RegisterFuncs(reg renderer.NodeRendererFuncRegisterer) {
 	reg.Register(ast.KindImage, func(w util.BufWriter, source []byte, node ast.Node, entering bool) (ast.WalkStatus, error) {
-		return ast.WalkContinue, nil
+		if !entering {
+			return ast.WalkContinue, nil
+		}
+
+		n := node.(*ast.Image)
+		// Get alt text
+		altText := n.Text(source)
+
+		// Write custom formatting
+		w.WriteString("<em>[")
+		w.Write(util.EscapeHTML(altText))
+		w.WriteString("]</em> ")
+
+		return ast.WalkSkipChildren, nil
 	})
 }
 

@@ -25,6 +25,8 @@ func main() {
 	r.GET("/v1/wiki/pages/:id/revisions", wiki.GetPageRevisions)
 	r.GET("/v1/wiki/pages/:id/revisions/:rev", wiki.GetPageRevision)
 	r.GET("/v1/wiki/indexable-pages", wiki.GetIndexablePages)
+	r.GET("/v1/wiki/categories", wiki.GetCategories)
+	r.GET("/v1/wiki/pages/:id/categories", wiki.GetPageCategories)
 
 	// Protected endpoints - require valid token and contributor role
 	protected := r.Group("/v1/wiki")
@@ -33,6 +35,7 @@ func main() {
 		protected.POST("/pages/new", wiki.PostNewPage)
 		protected.POST("/pages/:id/delete", wiki.PostDeletePage)
 		protected.POST("/pages/:id/revisions", wiki.PostPageRevision)
+		protected.POST("/pages/:id/categories", wiki.PostPageCategories)
 	}
 
 	r.GET("/v1/search/search", search.SearchRequest)

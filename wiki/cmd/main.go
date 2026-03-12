@@ -33,6 +33,10 @@ func main() {
 
 	r.GET("/indexable-pages", handlers.IndexablePagesHandler)
 
+    r.GET("/categories", handlers.CategoriesHandler)
+
+    r.GET("/pages/:id/categories", handlers.GetPageCategoriesHandler)
+
 	// POST
 
 	r.POST("/pages/new", handlers.NewPageHandler)
@@ -40,6 +44,8 @@ func main() {
 	r.POST("/pages/:id/delete", handlers.DeletePageHandler)
 
 	r.POST("/pages/:id/revisions", handlers.NewRevisionHandler)
+
+	r.POST("/pages/:id/categories", handlers.SetPageCategoriesHandler) // Requires auth
 
 	// Use port from environment variable, default to 9454
 	port := os.Getenv("WIKI_SERVICE_PORT")
