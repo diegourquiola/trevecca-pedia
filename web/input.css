@@ -12,8 +12,18 @@
 }
 
 @layer base {
-    #entry h1 {
-        font-size: 4em;
+    #entry {
+        max-width: 100%;
+    }
+    @media (max-width: 768px) {
+        #entry h1 {
+            font-size: 2.5em;
+        }
+    }
+    @media (min-width: 768px) {
+        #entry h1 {
+            font-size: 4em;
+        }
     }
     #entry h2 {
         font-size: 2em;
@@ -60,7 +70,7 @@
     #entry pre {
         display: block;
         font-family: monospace;
-        white-space: pre;
+        white-space: pre-wrap;
         margin: 1em 0;
     }
     #entry ul {
