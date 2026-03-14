@@ -11,6 +11,10 @@
     --default-font-family: 'Noto Serif', ui-sans-serif, system-ui, sans-serif;
 }
 
+@view-transition {
+    navigation: auto;
+}
+
 @layer base {
     #entry {
         max-width: 100%;
