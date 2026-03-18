@@ -1,0 +1,28 @@
+# fly.toml app configuration file for fly.io
+# See https://fly.io/docs/reference/configuration/
+
+app = 'trevecca-pedia-moderation'
+primary_region = 'iad'
+
+[build]
+
+[http_service]
+  internal_port = 7725
+  force_https = true
+  auto_stop_machines = 'stop'
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ['app']
+
+[[vm]]
+  memory = '512mb'
+  cpu_kind = 'shared'
+  cpus = 1
+
+# Environment variables (non-sensitive)
+[env]
+  PORT = "7725"
+
+# Secrets to be set via `fly secrets set`
+# DO NOT commit actual values here
+# CORS_ORIGINS="https://trevecca-pedia-web.fly.dev"
