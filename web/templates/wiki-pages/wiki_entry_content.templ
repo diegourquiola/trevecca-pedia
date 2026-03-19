@@ -48,7 +48,7 @@ templ WikiEntryContent(page utils.Page, saved bool) {
         </div>
     }
     <div class="flex items-start gap-4 md:ml-24 lg:ml-32 xl:ml-40 px-4 sm:px-6 lg:px-8 py-8">
-        <div id="entry" class="prose prose-lg dark:prose-dark md:max-w-3xl lg:max-w-4xl xl:max-w-5xl md:border-l-4 md:border-neutral-200 md:dark:border-neutral-700 md:pl-8">
+        <div id="entry" class="prose prose-lg dark:prose-dark min-w-0 md:max-w-3xl lg:max-w-4xl xl:max-w-5xl md:border-l-4 md:border-neutral-200 md:dark:border-neutral-700 md:pl-8">
             // Categories section
             if len(page.Categories) > 0 {
                 <div class="mb-4 flex flex-wrap gap-2">
