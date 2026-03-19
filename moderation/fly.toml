@@ -7,7 +7,7 @@ primary_region = 'iad'
 [build]
 
 [http_service]
-  internal_port = 7725
+  internal_port = 6633
   force_https = true
   auto_stop_machines = 'stop'
   auto_start_machines = true
@@ -21,7 +21,7 @@ primary_region = 'iad'
 
 # Environment variables (non-sensitive)
 [env]
-  PORT = "7725"
+  PORT = "6633"
 
 # Secrets to be set via `fly secrets set`
 # DO NOT commit actual values here

@@ -39,7 +39,7 @@ RUN chown -R appuser:appuser /app
 USER appuser
 
 # Expose the port the app runs on
-EXPOSE 7725
+EXPOSE 6633
 
 # Run the binary
 CMD ["./moderation-service"]

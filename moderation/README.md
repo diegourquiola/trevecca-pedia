@@ -20,7 +20,7 @@ air .
 
 ## Info
 
-This service starts an HTTP server on port `:7725`
+This service starts an HTTP server on port `:6633`
 
 ## Endpoints
 
