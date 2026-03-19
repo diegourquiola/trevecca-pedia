@@ -16,6 +16,9 @@
 }
 
 @layer base {
+    html, body {
+        overflow-x: hidden;
+    }
     #entry {
         max-width: 100%;
     }
@@ -49,6 +52,41 @@
     #entry table {
         border: 1px solid;
         border-collapse: collapse;
+        display: inline-block;
+        overflow-x: auto;
+        max-width: 100%;
+        white-space: nowrap;
+        scrollbar-width: thin;
+        scrollbar-color: #9ca3af transparent;
+        vertical-align: top;
+    }
+    /* Scroll indicator gradient - mobile and tablet (md and below) */
+    @media (max-width: 1023px) {
+        #entry table {
+            background: linear-gradient(to right, transparent 90%, rgba(0,0,0,0.1) 100%);
+            background-attachment: local, scroll;
+        }
+        .dark #entry table {
+            background: linear-gradient(to right, transparent 90%, rgba(255,255,255,0.1) 100%);
+        }
+    }
+    /* Custom scrollbar styling for webkit browsers */
+    #entry table::-webkit-scrollbar {
+        height: 6px;
+    }
+    #entry table::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    #entry table::-webkit-scrollbar-thumb {
+        background-color: #9ca3af;
+        border-radius: 3px;
+    }
+    /* Dark mode scrollbar */
+    .dark #entry table::-webkit-scrollbar-thumb {
+        background-color: #6b7280;
+    }
+    .dark #entry table {
+        scrollbar-color: #6b7280 transparent;
     }
     #entry td, #entry th {
         border: 1px solid;
@@ -57,6 +95,8 @@
     #entry a {
         text-decoration: underline;
         color: purple;
+        word-break: break-word;
+        overflow-wrap: anywhere;
         @apply dark:text-violet-400;
     }
     #entry img {
