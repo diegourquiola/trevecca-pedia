@@ -64,7 +64,6 @@
     @media (max-width: 1023px) {
         #entry table {
             background: linear-gradient(to right, transparent 90%, rgba(0,0,0,0.1) 100%);
-            background-attachment: local, scroll;
         }
         .dark #entry table {
             background: linear-gradient(to right, transparent 90%, rgba(255,255,255,0.1) 100%);
