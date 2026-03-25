@@ -5,6 +5,7 @@ import (
 	"web/config"
 	"web/handlers/image"
 	"web/handlers/search"
+	"web/users"
 	"web/wiki"
 
 	"github.com/gin-gonic/gin"
@@ -24,7 +25,8 @@ func main() {
 	r.GET("/pages/:id/history/timeline", wiki.GetTimelinePartial)
 	r.GET("/search", search.GetSearchPage)
 	r.GET("/login", auth.GetLoginPage)
-	r.GET("/profile", auth.GetProfilePage)
+	r.GET("/users/:username", users.GetUserProfilePage)
+	r.GET("/users/:username/revisions", users.GetUserRevisionsPartial)
 
 	// Auth API proxy routes - browser calls these, web service forwards to API layer
 	r.POST("/auth/login", auth.PostLogin)

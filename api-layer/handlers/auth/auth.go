@@ -90,3 +90,22 @@ func GetMe(c *gin.Context) {
 
 	c.Data(res.StatusCode, res.Header.Get("Content-Type"), body)
 }
+
+// GetUser proxies GET /v1/auth/users/:username → auth service GET /users/:username
+func GetUser(c *gin.Context) {
+	username := c.Param("username")
+	res, err := proxyClient.Get(config.AuthServiceURL + "/users/" + username)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusServiceUnavailable, gin.H{"error": "auth service unavailable"})
+		return
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to read response"})
+		return
+	}
+
+	c.Data(res.StatusCode, res.Header.Get("Content-Type"), body)
+}

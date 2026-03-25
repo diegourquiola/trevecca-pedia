@@ -25,6 +25,7 @@ func SetupRouter(store *store.Store, jwtService *auth.JWTService, corsOrigins []
 	r.POST("/auth/register", authHandlers.Register)
 	r.POST("/auth/login", authHandlers.Login)
 	r.GET("/auth/me", AuthMiddleware(jwtService), authHandlers.Me)
+	r.GET("/users/:username", authHandlers.User)
 
 	return r
 }

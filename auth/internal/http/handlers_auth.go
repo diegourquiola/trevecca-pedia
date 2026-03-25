@@ -195,6 +195,42 @@ func (h *AuthHandlers) Me(c *gin.Context) {
 	})
 }
 
+// User handles getting user info by username
+func (h *AuthHandlers) User(c *gin.Context) {
+	username := c.Param("username")
+	if username == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "username required"})
+		return
+	}
+
+	// Get user by username (email prefix)
+	user, err := h.store.GetUserByUsername(c.Request.Context(), username)
+	if err != nil {
+		if err.Error() == "user not found" {
+			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
+			return
+		}
+		log.Printf("Error getting user %s: %v", username, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	// Get user roles
+	roles, err := h.store.GetUserRoles(c.Request.Context(), user.ID)
+	if err != nil {
+		log.Printf("Error getting roles for user %s: %v", username, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "internal server error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, store.UserWithRoles{
+		ID:        user.ID,
+		Email:     user.Email,
+		Roles:     roles,
+		CreatedAt: user.CreatedAt,
+	})
+}
+
 // HealthCheck handles health check endpoint
 func HealthCheck(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"status": "ok"})

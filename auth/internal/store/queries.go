@@ -44,4 +44,10 @@ const (
 			SELECT 1 FROM allowed_emails WHERE email = $1
 		)
 	`
+
+	queryGetUserByUsername = `
+		SELECT id, email, password_hash, created_at 
+		FROM users 
+		WHERE email = $1 || '@trevecca.edu'
+	`
 )
