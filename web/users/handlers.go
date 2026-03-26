@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -158,7 +159,7 @@ func fetchUserByUsername(username string) (*UserResponse, error) {
 
 // fetchRevisionsByAuthor fetches revisions from wiki service
 func fetchRevisionsByAuthor(author string, offset, limit int) ([]users.Revision, bool, error) {
-	url := fmt.Sprintf("%s/revisions?author=%s&index=%d&count=%d", config.WikiURL, author, offset, limit)
+	url := fmt.Sprintf("%s/revisions?author=%s&index=%d&count=%d", config.WikiURL, url.QueryEscape(author), offset, limit)
 
 	resp, err := httpClient.Get(url)
 	if err != nil {

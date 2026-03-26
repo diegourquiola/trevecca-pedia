@@ -37,7 +37,7 @@ func GetPageHistory(c *gin.Context) {
 	}
 
 	// Determine which revision to show
-	var currentRevision utils.Revision
+	var currentRevision utils.RevisionDetail
 	var revisionNumber int
 
 	if revId != "" {
@@ -49,7 +49,7 @@ func GetPageHistory(c *gin.Context) {
 		}
 		// Find the revision number (position in list, with oldest as #1)
 		for i, rev := range revisions {
-			if rev.UUID == currentRevision.UUID {
+			if rev.UUID != nil && *rev.UUID == currentRevision.UUID {
 				revisionNumber = len(revisions) - i
 				break
 			}
@@ -68,9 +68,9 @@ func GetPageHistory(c *gin.Context) {
 	}
 
 	// Get previous revision for diff highlighting
-	var previousRevision *utils.Revision
+	var previousRevision *utils.RevisionDetail
 	for i, rev := range revisions {
-		if rev.UUID == currentRevision.UUID && i < len(revisions)-1 {
+		if rev.UUID != nil && *rev.UUID == currentRevision.UUID && i < len(revisions)-1 {
 			// Fetch the full previous revision content since the list doesn't include it
 			prevRevId := revisions[i+1].UUID.String()
 			prevRev, err := fetchRevision(id, prevRevId)
@@ -84,21 +84,25 @@ func GetPageHistory(c *gin.Context) {
 	// Highlight changes and convert to HTML
 	highlightedContent, hasChanges := highlightChanges(currentRevision.Content, previousRevision)
 
+	// Convert new types to deprecated Revision type for template compatibility
+	revisionsForTemplate := utils.RevisionListToRevisions(revisions)
+	currentRevisionForTemplate := currentRevision.ToRevision()
+
 	// Check if HTMX request (for partial content update)
 	if c.GetHeader("HX-Request") == "true" {
 		// Return article content AND updated timeline selection
 		// Article replaces #article-content via hx-target
-		articleContent := wikipages.WikiHistoryArticle(page, currentRevision, highlightedContent, revisionNumber, hasChanges)
+		articleContent := wikipages.WikiHistoryArticle(page, currentRevisionForTemplate, highlightedContent, revisionNumber, hasChanges)
 		articleContent.Render(context.Background(), c.Writer)
 
 		// Timeline updates selection via hx-swap-oob
-		timelineContent := wikipages.WikiHistoryTimeline(revisions, currentRevision.UUID.String(), len(revisions))
+		timelineContent := wikipages.WikiHistoryTimeline(revisionsForTemplate, currentRevision.UUID.String(), len(revisions))
 		timelineContent.Render(context.Background(), c.Writer)
 		return
 	}
 
 	// Full page render
-	historyContent := wikipages.WikiHistoryContent(page, revisions, currentRevision, highlightedContent, revisionNumber, hasChanges)
+	historyContent := wikipages.WikiHistoryContent(page, revisionsForTemplate, currentRevisionForTemplate, highlightedContent, revisionNumber, hasChanges)
 	component := components.Page(page.Name+" - Revision History", historyContent)
 	component.Render(context.Background(), c.Writer)
 }
@@ -123,7 +127,10 @@ func GetTimelinePartial(c *gin.Context) {
 	totalRevisions, _ := fetchRevisions(id, 0, 1000)
 	totalCount := len(totalRevisions)
 
-	timelineItems := wikipages.WikiHistoryTimelineItems(revisions, totalCount, index)
+	// Convert new types to deprecated Revision type for template compatibility
+	revisionsForTemplate := utils.RevisionListToRevisions(revisions)
+
+	timelineItems := wikipages.WikiHistoryTimelineItems(revisionsForTemplate, totalCount, index)
 	timelineItems.Render(context.Background(), c.Writer)
 }
 
@@ -150,7 +157,7 @@ func fetchPageData(id string) (utils.Page, error) {
 }
 
 // fetchRevisions gets revision list from API
-func fetchRevisions(id string, index, count int) ([]utils.Revision, error) {
+func fetchRevisions(id string, index, count int) ([]utils.RevisionList, error) {
 	url := fmt.Sprintf("%s/pages/%s/revisions?index=%d&count=%d", config.WikiURL, id, index, count)
 	resp, err := http.Get(url)
 	if err != nil {
@@ -163,7 +170,7 @@ func fetchRevisions(id string, index, count int) ([]utils.Revision, error) {
 		return nil, err
 	}
 
-	var revisions []utils.Revision
+	var revisions []utils.RevisionList
 	err = json.Unmarshal(body, &revisions)
 	if err != nil {
 		return nil, err
@@ -173,23 +180,23 @@ func fetchRevisions(id string, index, count int) ([]utils.Revision, error) {
 }
 
 // fetchRevision gets a specific revision from API
-func fetchRevision(id, revId string) (utils.Revision, error) {
+func fetchRevision(id, revId string) (utils.RevisionDetail, error) {
 	url := fmt.Sprintf("%s/pages/%s/revisions/%s", config.WikiURL, id, revId)
 	resp, err := http.Get(url)
 	if err != nil {
-		return utils.Revision{}, err
+		return utils.RevisionDetail{}, err
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return utils.Revision{}, err
+		return utils.RevisionDetail{}, err
 	}
 
-	var revision utils.Revision
+	var revision utils.RevisionDetail
 	err = json.Unmarshal(body, &revision)
 	if err != nil {
-		return utils.Revision{}, err
+		return utils.RevisionDetail{}, err
 	}
 
 	return revision, nil
@@ -197,7 +204,7 @@ func fetchRevision(id, revId string) (utils.Revision, error) {
 
 // highlightChanges compares content and shows deleted text with strikethrough
 // Returns the HTML content with deletions shown and a boolean indicating if there are changes
-func highlightChanges(currentContent string, previousRevision *utils.Revision) (string, bool) {
+func highlightChanges(currentContent string, previousRevision *utils.RevisionDetail) (string, bool) {
 	// Convert current content to HTML
 	currentHTML, err := utils.ToHTML(currentContent)
 	if err != nil {

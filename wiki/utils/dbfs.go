@@ -35,7 +35,7 @@ func CreateRevision(ctx context.Context, db *sql.DB, tx *sql.Tx, dataDir string,
 
 	// Get the current last revision ID to reconstruct the content at that revision
 	var lastRevisionId *uuid.UUID
-	err = db.QueryRowContext(ctx, `
+	err = tx.QueryRowContext(ctx, `
 		SELECT last_revision_id FROM pages WHERE uuid=$1;
 	`, pageUUID).Scan(&lastRevisionId)
 	if err != nil {

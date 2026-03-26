@@ -121,7 +121,7 @@ function _applyNavUser(user) {
     // Update profile link to point to /users/{username}
     if (profileLink && user.email) {
         const username = user.email.split('@')[0]
-        profileLink.href = '/users/' + username
+        profileLink.href = '/users/' + encodeURIComponent(username)
     }
 
     // Show "New Page" desktop button (md+ only)
