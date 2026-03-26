@@ -29,23 +29,39 @@ func buildCategoryBreadcrumbs(fullSlug string) []struct {
 	return breadcrumbs
 }
 
-templ WikiEntryContent(page utils.Page, saved bool) {
+templ WikiEntryContent(page utils.Page, saved bool, isModerator bool) {
     if saved {
-        <div class="md:max-w-3xl lg:max-w-4xl xl:max-w-5xl md:ml-24 lg:ml-32 xl:ml-40 px-4 sm:px-6 lg:px-8 pt-8">
+        <div id="save-success" class="md:max-w-3xl lg:max-w-4xl xl:max-w-5xl md:ml-24 lg:ml-32 xl:ml-40 px-4 sm:px-6 lg:px-8 pt-8">
             <div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
                 <svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                 </svg>
-                <div>
+                <div class="flex-1">
                     <p class="text-sm font-medium text-green-800">Changes saved successfully</p>
-                    <p class="text-sm text-green-600 mt-1">
-                        <a href={ templ.SafeURL(fmt.Sprintf("/pages/%s/edit", page.Slug)) } class="underline hover:text-green-800">
-                            Edit again
-                        </a>
-                    </p>
                 </div>
+                <button onclick="dismissSuccess()" class="text-green-600 hover:text-green-800 transition-colors" aria-label="Dismiss">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
             </div>
         </div>
+        <script>
+            function dismissSuccess() {
+                var el = document.getElementById('save-success');
+                if (el) {
+                    el.style.transition = 'opacity 0.3s ease';
+                    el.style.opacity = '0';
+                    setTimeout(function() {
+                        el.style.display = 'none';
+                    }, 300);
+                }
+            }
+            // Auto-dismiss after 5 seconds
+            setTimeout(function() {
+                dismissSuccess();
+            }, 5000);
+        </script>
     }
     <div class="flex items-start gap-4 md:ml-24 lg:ml-32 xl:ml-40 px-4 sm:px-6 lg:px-8 py-8">
         <div id="entry" class="prose prose-lg dark:prose-dark min-w-0 md:max-w-3xl lg:max-w-4xl xl:max-w-5xl md:border-l-4 md:border-neutral-200 md:dark:border-neutral-700 md:pl-8">
@@ -63,16 +79,40 @@ templ WikiEntryContent(page utils.Page, saved bool) {
             }
             @templ.Raw(utils.ToHTML(page.Content))
         </div>
-        <!-- Inline edit button: visible on md+ screens only -->
-        <a
-            href={ templ.SafeURL(fmt.Sprintf("/pages/%s/edit", page.Slug)) }
-            class="hidden md:flex flex-shrink-0 items-center gap-2 px-4 py-2 bg-neutral-800 dark:bg-neutral-100 text-white dark:text-neutral-900 rounded-lg hover:bg-neutral-700 dark:hover:bg-neutral-300 font-medium text-sm transition-colors"
-        >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
-            </svg>
-            Edit
-        </a>
+        <div class="flex flex-col gap-2">
+            <!-- Inline edit button: visible on md+ screens only -->
+            <a
+                href={ templ.SafeURL(fmt.Sprintf("/pages/%s/edit", page.Slug)) }
+                class="hidden md:flex flex-shrink-0 items-center gap-2 px-4 py-2 bg-neutral-800 dark:bg-neutral-100 text-white dark:text-neutral-900 rounded-lg hover:bg-neutral-700 dark:hover:bg-neutral-300 font-medium text-sm transition-colors"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                </svg>
+                Edit
+            </a>
+            <!-- Inline history button: visible on md+ screens only -->
+            <a
+                href={ templ.SafeURL(fmt.Sprintf("/pages/%s/history", page.Slug)) }
+                class="hidden md:flex flex-shrink-0 items-center gap-2 px-4 py-2 bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 rounded-lg hover:bg-neutral-300 dark:hover:bg-neutral-600 font-medium text-sm transition-colors"
+            >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                History
+            </a>
+            <!-- Inline delete button: visible on md+ screens only, moderator only -->
+            if isModerator {
+                <button
+                    onclick="document.getElementById('delete-modal').classList.remove('hidden')"
+                    class="hidden md:flex flex-shrink-0 items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium text-sm transition-colors"
+                >
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                    Delete
+                </button>
+            }
+        </div>
     </div>
     <!-- Floating edit FAB: visible on small screens only -->
     <a
@@ -84,5 +124,56 @@ templ WikiEntryContent(page utils.Page, saved bool) {
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
         </svg>
     </a>
+    <!-- Floating history FAB: visible on small screens only -->
+    <a
+        href={ templ.SafeURL(fmt.Sprintf("/pages/%s/history", page.Slug)) }
+        class="md:hidden fixed bottom-[5rem] right-6 z-40 p-3 bg-neutral-200 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 rounded-full shadow-lg hover:bg-neutral-300 dark:hover:bg-neutral-600 transition-colors"
+        aria-label="View history"
+    >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+    </a>
+    <!-- Floating delete FAB: visible on small screens only, moderator only -->
+    if isModerator {
+        <button
+            onclick="document.getElementById('delete-modal').classList.remove('hidden')"
+            class="md:hidden fixed bottom-[8.5rem] right-6 z-50 p-3 bg-red-600 text-white rounded-full shadow-lg hover:bg-red-700 transition-colors"
+            aria-label="Delete page"
+        >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+        </button>
+    }
+    <!-- Delete confirmation modal -->
+    <div id="delete-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div class="bg-white dark:bg-neutral-800 rounded-lg p-6 max-w-md mx-4 shadow-xl">
+            <div class="flex items-center gap-3 mb-4">
+                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                <h3 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Delete Page</h3>
+            </div>
+            <p class="text-neutral-600 dark:text-neutral-400 mb-4">
+                Are you sure you want to delete <strong class="text-neutral-900 dark:text-neutral-100">{ page.Name }</strong>? This action cannot be undone.
+            </p>
+            <div class="flex gap-3 justify-end">
+                <button
+                    onclick="document.getElementById('delete-modal').classList.add('hidden')"
+                    class="px-4 py-2 text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-100 font-medium transition-colors"
+                >
+                    Cancel
+                </button>
+                <form method="POST" action={ templ.SafeURL(fmt.Sprintf("/pages/%s/delete", page.Slug)) } class="inline">
+                    <button
+                        type="submit"
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
+                    >
+                        Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 }
-

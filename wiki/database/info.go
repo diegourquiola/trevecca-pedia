@@ -160,8 +160,8 @@ func GetMissingRevisions(ctx context.Context, db *sql.DB, revId uuid.UUID) ([]Re
 	}
 	err = db.QueryRowContext(
 		ctx,
-		"SELECT COUNT(*) FROM revisions WHERE page_id=$1 AND date_time > $2",
-		pageId, snapRevTime).
+		"SELECT COUNT(*) FROM revisions WHERE page_id=$1 AND date_time > $2 AND date_time <= $3",
+		pageId, snapRevTime, revInfo.DateTime).
 		Scan(&count)
 	if err != nil {
 		return nil, err
@@ -170,8 +170,8 @@ func GetMissingRevisions(ctx context.Context, db *sql.DB, revId uuid.UUID) ([]Re
 
 	revIds, err := db.QueryContext(
 		ctx,
-		"SELECT uuid FROM revisions WHERE page_id=$1 AND date_time > $2 ORDER BY date_time ASC",
-		pageId, snapRevTime)
+		"SELECT uuid FROM revisions WHERE page_id=$1 AND date_time > $2 AND date_time <= $3 ORDER BY date_time ASC",
+		pageId, snapRevTime, revInfo.DateTime)
 	if err != nil {
 		return nil, err
 	}

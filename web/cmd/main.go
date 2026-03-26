@@ -5,6 +5,7 @@ import (
 	"web/config"
 	"web/handlers/image"
 	"web/handlers/search"
+	"web/users"
 	"web/wiki"
 
 	"github.com/gin-gonic/gin"
@@ -19,9 +20,13 @@ func main() {
 	r.GET("/", wiki.GetHome)
 	r.GET("/pages", wiki.GetCategoryPages)
 	r.GET("/pages/:id", wiki.GetPage)
+	r.GET("/pages/:id/history", wiki.GetPageHistory)
+	r.GET("/pages/:id/history/:revId", wiki.GetPageHistory)
+	r.GET("/pages/:id/history/timeline", wiki.GetTimelinePartial)
 	r.GET("/search", search.GetSearchPage)
 	r.GET("/login", auth.GetLoginPage)
-	r.GET("/profile", auth.GetProfilePage)
+	r.GET("/users/:username", users.GetUserProfilePage)
+	r.GET("/users/:username/revisions", users.GetUserRevisionsPartial)
 
 	// Auth API proxy routes - browser calls these, web service forwards to API layer
 	r.POST("/auth/login", auth.PostLogin)
@@ -38,6 +43,13 @@ func main() {
 		protected.GET("/pages/:id/edit", wiki.GetEditPage)
 		protected.POST("/pages/:id/edit", wiki.PostEditPage)
 		protected.POST("/update-preview", wiki.PostPreview)
+	}
+
+	// Moderator-only routes - require moderator role
+	moderator := r.Group("/")
+	moderator.Use(auth.RequireRole("moderator"))
+	{
+		moderator.POST("/pages/:id/delete", wiki.PostDeletePage)
 	}
 
 	r.GET("/image/*id", image.GetImage)

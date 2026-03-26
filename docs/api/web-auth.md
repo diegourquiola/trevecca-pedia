@@ -37,6 +37,7 @@ Success response:
 
 Notes:
 - The upstream API layer returns `accessToken`, but the web service strips it and only returns `user`.
+- The `roles` array may include additional roles (e.g., `moderator`) depending on user permissions.
 
 ### `POST /auth/register`
 
@@ -94,5 +95,42 @@ From browser JS:
 - `fetch('/auth/login', ...)` logs in and sets cookie.
 - `fetch('/auth/me')` returns user if cookie is valid.
 - `fetch('/auth/logout', { method: 'POST' })` logs out.
+
+## User Profile Pages
+
+### `GET /users/:username`
+
+Displays a user's public profile page with their information and contribution history.
+
+**Parameters:**
+- `:username` - The username (email prefix before @trevecca.edu)
+
+**Features:**
+- Profile card with email, roles, and join date
+- Contributions section showing revision history
+- HTMX infinite scroll for loading more revisions
+- "User not found" page for invalid usernames (HTTP 200)
+
+**Example:**
+```
+GET /users/john.doe
+```
+
+### `GET /users/:username/revisions`
+
+HTMX endpoint for loading additional revisions via infinite scroll.
+
+**Parameters:**
+- `:username` - The username
+- `offset` - The offset for pagination (default: 20)
+
+**Returns:** HTML partial with revision items
+
+**Example:**
+```
+GET /users/john.doe/revisions?offset=20
+```
+
+---
 
 See `web/static/js/auth.js` for the intended usage pattern.

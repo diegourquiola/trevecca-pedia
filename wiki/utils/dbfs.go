@@ -21,7 +21,7 @@ import (
 func CreateRevision(ctx context.Context, db *sql.DB, tx *sql.Tx, dataDir string, revReq RevisionRequest) (uuid.UUID, error) {
 	pageUUID, err := database.GetUUID(ctx, db, revReq.PageId)
 	if err != nil {
-		return uuid.UUID{}, err
+		return uuid.UUID{}, fmt.Errorf("GetUUID failed: %w", err)
 	}
 	var revUUID uuid.UUID
 	err = tx.QueryRowContext(ctx, `
@@ -33,11 +33,25 @@ func CreateRevision(ctx context.Context, db *sql.DB, tx *sql.Tx, dataDir string,
 		return uuid.UUID{}, err
 	}
 
-	// create the diff and make the revision
-	pageContent, err := filesystem.GetPageContent(ctx, db, dataDir, pageUUID)
+	// Get the current last revision ID to reconstruct the content at that revision
+	var lastRevisionId *uuid.UUID
+	err = tx.QueryRowContext(ctx, `
+		SELECT last_revision_id FROM pages WHERE uuid=$1;
+	`, pageUUID).Scan(&lastRevisionId)
 	if err != nil {
 		return uuid.UUID{}, err
 	}
+
+	// Get the content at the last revision (or empty string if this is the first revision)
+	var pageContent string
+	if lastRevisionId != nil {
+		pageContent, err = GetContentAtRevision(ctx, db, dataDir, pageUUID, *lastRevisionId)
+		if err != nil {
+			return uuid.UUID{}, err
+		}
+	}
+
+	// create the diff and make the revision
 	pageFilename := filepath.Join(dataDir, "pages", fmt.Sprintf("%s.md", revReq.Slug))
 	diff := udiff.Unified(pageFilename, pageFilename, pageContent, revReq.NewContent)
 
@@ -48,7 +62,7 @@ func CreateRevision(ctx context.Context, db *sql.DB, tx *sql.Tx, dataDir string,
 	}
 	err = os.WriteFile(filepath.Join(dataDir, "revisions", filename), []byte(diff), 0644)
 	if err != nil {
-		return uuid.UUID{}, err
+		return uuid.UUID{}, fmt.Errorf("writing revision file failed: %w", err)
 	}
 
 	return revUUID, nil

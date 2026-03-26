@@ -87,62 +87,6 @@ async function logout() {
     window.location.href = '/'
 }
 
-async function fetchProfile() {
-    try {
-        // Cookie is sent automatically by the browser — no Authorization header needed.
-        const resp = await fetch('/auth/me')
-        if (!resp.ok) {
-            clearAuth()
-            showProfileState('unauthenticated')
-            return
-        }
-        const user = await resp.json()
-        saveAuth(user)
-        populateProfile(user)
-        showProfileState('content')
-    } catch {
-        clearAuth()
-        showProfileState('unauthenticated')
-    }
-}
-
-function showProfileState(state) {
-    const loading = document.getElementById('profile-loading')
-    const unauth = document.getElementById('profile-unauthenticated')
-    const content = document.getElementById('profile-content')
-    if (!loading) return
-
-    loading.classList.add('hidden')
-    unauth.classList.add('hidden')
-    content.classList.add('hidden')
-
-    if (state === 'loading') loading.classList.remove('hidden')
-    else if (state === 'unauthenticated') unauth.classList.remove('hidden')
-    else if (state === 'content') content.classList.remove('hidden')
-}
-
-function populateProfile(user) {
-    const emailEl = document.getElementById('profile-email')
-    const rolesEl = document.getElementById('profile-roles')
-    const idEl = document.getElementById('profile-id')
-    if (!emailEl) return
-
-    emailEl.textContent = user.email || ''
-    idEl.textContent = user.id || ''
-
-    rolesEl.innerHTML = ''
-    const roles = user.roles || []
-    if (roles.length === 0) {
-        rolesEl.innerHTML = '<span class="text-sm text-neutral-500 dark:text-neutral-400">No roles assigned</span>'
-    } else {
-        roles.forEach(function(role) {
-            const badge = document.createElement('span')
-            badge.className = 'px-3 py-1 text-sm bg-neutral-100 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300 rounded-full'
-            badge.textContent = role
-            rolesEl.appendChild(badge)
-        })
-    }
-}
 
 async function updateNavAuth() {
     var user = getUser()
@@ -168,10 +112,17 @@ function _applyNavUser(user) {
     const loginLink = document.getElementById('nav-login-link')
     const userMenu = document.getElementById('nav-user-menu')
     const userEmail = document.getElementById('nav-user-email')
+    const profileLink = document.getElementById('nav-profile-link')
     if (!loginLink || !userMenu) return
     loginLink.classList.add('hidden')
     userMenu.classList.remove('hidden')
     if (userEmail) userEmail.textContent = user.email || ''
+    
+    // Update profile link to point to /users/{username}
+    if (profileLink && user.email) {
+        const username = user.email.split('@')[0]
+        profileLink.href = '/users/' + encodeURIComponent(username)
+    }
 
     // Show "New Page" desktop button (md+ only)
     const newPageBtn = document.getElementById('nav-new-page')

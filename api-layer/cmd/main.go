@@ -27,15 +27,22 @@ func main() {
 	r.GET("/v1/wiki/indexable-pages", wiki.GetIndexablePages)
 	r.GET("/v1/wiki/categories", wiki.GetCategories)
 	r.GET("/v1/wiki/pages/:id/categories", wiki.GetPageCategories)
+	r.GET("/v1/wiki/revisions", wiki.GetRevisionsByAuthor)
 
 	// Protected endpoints - require valid token and contributor role
 	protected := r.Group("/v1/wiki")
 	protected.Use(middleware.AuthMiddleware(), middleware.RequireRole("contributor"))
 	{
 		protected.POST("/pages/new", wiki.PostNewPage)
-		protected.POST("/pages/:id/delete", wiki.PostDeletePage)
 		protected.POST("/pages/:id/revisions", wiki.PostPageRevision)
 		protected.POST("/pages/:id/categories", wiki.PostPageCategories)
+	}
+
+	// Moderator-only endpoints - require valid token and moderator role
+	moderator := r.Group("/v1/wiki")
+	moderator.Use(middleware.AuthMiddleware(), middleware.RequireRole("moderator"))
+	{
+		moderator.POST("/pages/:id/delete", wiki.PostDeletePage)
 	}
 
 	r.GET("/v1/search/search", search.SearchRequest)
@@ -44,6 +51,7 @@ func main() {
 	r.POST("/v1/auth/login", authHandlers.PostLogin)
 	r.POST("/v1/auth/register", authHandlers.PostRegister)
 	r.GET("/v1/auth/me", authHandlers.GetMe)
+	r.GET("/v1/auth/users/:username", authHandlers.GetUser)
 
 	port := config.GetEnv("API_LAYER_PORT", "2745")
 	r.Run(fmt.Sprintf(":%s", port))

@@ -27,15 +27,17 @@ func main() {
 
 	r.GET("/pages/:id", handlers.PageHandler)
 
+	r.GET("/revisions", handlers.PageRevisionsHandler)
+
 	r.GET("/pages/:id/revisions", handlers.PageRevisionsHandler)
 
 	r.GET("/pages/:id/revisions/:rev", handlers.PageRevisionHandler)
 
 	r.GET("/indexable-pages", handlers.IndexablePagesHandler)
 
-    r.GET("/categories", handlers.CategoriesHandler)
+	r.GET("/categories", handlers.CategoriesHandler)
 
-    r.GET("/pages/:id/categories", handlers.GetPageCategoriesHandler)
+	r.GET("/pages/:id/categories", handlers.GetPageCategoriesHandler)
 
 	// POST
 

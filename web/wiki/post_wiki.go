@@ -98,18 +98,29 @@ func PostEditPage(c *gin.Context) {
 		return
 	}
 
+	// Fetch page info to include slug and name in the request
+	page, fetchErr := fetchPage(id)
+	if fetchErr != nil {
+		c.AbortWithError(http.StatusBadGateway, fetchErr)
+		return
+	}
+
 	// Step 3 — build multipart form for the API layer
 	//
 	// API: POST /v1/wiki/pages/:id/revisions
 	// Fields:
 	//   page_id     — the slug (or uuid) of the page
 	//   author      — user's email
+	//   slug        — the page slug
+	//   name        — the page name
 	//   new_content — the markdown content as a file upload
 	var body bytes.Buffer
 	writer := multipart.NewWriter(&body)
 
 	writer.WriteField("page_id", id)
 	writer.WriteField("author", authorEmail)
+	writer.WriteField("slug", page.Slug)
+	writer.WriteField("name", page.Name)
 
 	filePart, err := writer.CreateFormFile("new_content", "content.md")
 	if err != nil {
@@ -139,11 +150,6 @@ func PostEditPage(c *gin.Context) {
 	resp, err := wikiClient.Do(req)
 	if err != nil {
 		// Network error — re-render form with error
-		page, fetchErr := fetchPage(id)
-		if fetchErr != nil {
-			c.AbortWithError(http.StatusBadGateway, fetchErr)
-			return
-		}
 		editContent := wikipages.WikiEditContent(page, "Unable to save changes. The wiki service is unreachable.")
 		component := components.Page("Editing: "+page.Name, editContent)
 		component.Render(context.Background(), c.Writer)
@@ -152,11 +158,6 @@ func PostEditPage(c *gin.Context) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		page, fetchErr := fetchPage(id)
-		if fetchErr != nil {
-			c.AbortWithError(http.StatusBadGateway, fetchErr)
-			return
-		}
 		errMsg := fmt.Sprintf("Unable to save changes. (status %d)", resp.StatusCode)
 		editContent := wikipages.WikiEditContent(page, errMsg)
 		component := components.Page("Editing: "+page.Name, editContent)

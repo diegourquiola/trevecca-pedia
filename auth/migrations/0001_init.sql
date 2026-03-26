@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS user_roles (
 );
 
 -- Seed roles
-INSERT INTO roles (name) VALUES ('reader'), ('contributor'), ('admin')
+INSERT INTO roles (name) VALUES ('reader'), ('contributor'), ('moderator'), ('admin')
 ON CONFLICT (name) DO NOTHING;
 
 -- Create indexes

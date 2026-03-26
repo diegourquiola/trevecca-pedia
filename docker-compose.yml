@@ -57,6 +57,17 @@ services:
       - api-layer
     restart: unless-stopped
 
+  moderation:
+    build:
+      context: ./moderation
+      dockerfile: Dockerfile
+    network_mode: host
+    user: root
+    env_file: ./moderation/.env
+    profiles:
+      - moderation
+    restart: unless-stopped
+
   web:
     build:
       context: ./web

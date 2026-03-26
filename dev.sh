@@ -18,7 +18,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-ALL_SERVICES=(wiki search auth api-layer web)
+ALL_SERVICES=(wiki search auth api-layer moderation web)
 
 # Colors for output
 RED='\033[0;31m'

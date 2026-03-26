@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"web/auth"
 	"web/config"
 	categorytemplates "web/templates/category"
 	"web/templates/components"
@@ -17,6 +18,10 @@ import (
 
 func GetPage(c *gin.Context) {
 	id := c.Param("id")
+
+	// Check if user is a moderator
+	user, _ := auth.GetUserFromContext(c)
+	isModerator := auth.HasRole(user, "moderator")
 
 	// Fetch page and categories in parallel
 	pageResp, err := http.Get(fmt.Sprintf("%s/pages/%s", config.WikiURL, id))
@@ -44,7 +49,7 @@ func GetPage(c *gin.Context) {
 	page.Categories = categories
 
 	saved := c.Query("saved") == "true"
-	entryContent := wikipages.WikiEntryContent(page, saved)
+	entryContent := wikipages.WikiEntryContent(page, saved, isModerator)
 	component := components.Page(page.Name, entryContent)
 	component.Render(context.Background(), c.Writer)
 }
@@ -55,7 +60,8 @@ func GetHome(c *gin.Context) {
 	if err != nil {
 		categories = []utils.Category{}
 	}
-	homeComp := components.HomeContent(categories)
+	deleted := c.Query("deleted") == "true"
+	homeComp := components.HomeContent(categories, deleted)
 	page := components.Page("TreveccaPedia", homeComp)
 	page.Render(context.Background(), c.Writer)
 }
@@ -102,27 +108,6 @@ func GetCategoryPages(c *gin.Context) {
 	content := categorytemplates.CategoryContent(categorySlug, categoryName, categories, pages)
 	component := components.Page(title, content)
 	component.Render(context.Background(), c.Writer)
-}
-
-func getPages() ([]utils.PageInfoPrev, error) {
-	resp, err := http.Get(fmt.Sprintf("%s/pages", config.WikiURL))
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var pages []utils.PageInfoPrev
-	err = json.Unmarshal(body, &pages)
-	if err != nil {
-		return nil, err
-	}
-
-	return pages, nil
 }
 
 func getPagesByCategory(category string) ([]utils.PageInfoPrev, error) {

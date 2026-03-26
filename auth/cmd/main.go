@@ -46,11 +46,16 @@ func main() {
 
 	// Seed dev user if configured
 	if cfg.DevSeed {
-		log.Println("⚠️  DEV_SEED is enabled - creating development user")
+		log.Println("⚠️  DEV_SEED is enabled - creating development users")
 		if err := seedDevUser(context.Background(), dataStore); err != nil {
 			log.Printf("Warning: Failed to seed dev user: %v", err)
 		} else {
 			log.Println("✓ Development user created/verified: dev@trevecca.edu / devpass")
+		}
+		if err := seedModUser(context.Background(), dataStore); err != nil {
+			log.Printf("Warning: Failed to seed mod user: %v", err)
+		} else {
+			log.Println("✓ Development user created/verified: mod@trevecca.edu / modpass")
 		}
 	}
 
@@ -92,4 +97,32 @@ func seedDevUser(ctx context.Context, dataStore *store.Store) error {
 
 	// Add contributor role to user
 	return dataStore.AddUserRole(ctx, user.ID, role.ID)
+}
+
+func seedModUser(ctx context.Context, dataStore *store.Store) error {
+	_, err := dataStore.GetUserByEmail(ctx, "mod@trevecca.edu")
+	if err == nil {
+		return nil
+	}
+	hashedPassword, err := auth.HashPassword("modpass")
+	if err != nil {
+		return err
+	}
+	user, err := dataStore.CreateUser(ctx, "mod@trevecca.edu", hashedPassword)
+	if err != nil {
+		return err
+	}
+	contributorRole, err := dataStore.GetRoleByName(ctx, "contributor")
+	if err != nil {
+		return err
+	}
+	moderatorRole, err := dataStore.GetRoleByName(ctx, "moderator")
+	if err != nil {
+		return err
+	}
+	err = dataStore.AddUserRole(ctx, user.ID, contributorRole.ID)
+	if err != nil {
+		return err
+	}
+	return dataStore.AddUserRole(ctx, user.ID, moderatorRole.ID)
 }

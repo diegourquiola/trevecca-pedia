@@ -137,6 +137,24 @@ func (s *Store) IsEmailWhitelisted(ctx context.Context, email string) (bool, err
 	return exists, nil
 }
 
+// GetUserByUsername retrieves a user by their username (email prefix before @trevecca.edu)
+func (s *Store) GetUserByUsername(ctx context.Context, username string) (*User, error) {
+	var user User
+	err := s.db.QueryRowContext(ctx, queryGetUserByUsername, username).Scan(
+		&user.ID,
+		&user.Email,
+		&user.PasswordHash,
+		&user.CreatedAt,
+	)
+	if err == sql.ErrNoRows {
+		return nil, fmt.Errorf("user not found")
+	}
+	if err != nil {
+		return nil, fmt.Errorf("database error: %w", err)
+	}
+	return &user, nil
+}
+
 // AddUserRole adds a role to a user
 func (s *Store) AddUserRole(ctx context.Context, userID uuid.UUID, roleID int) error {
 	_, err := s.db.ExecContext(ctx, queryAddUserRole, userID, roleID)

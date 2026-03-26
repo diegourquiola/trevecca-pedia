@@ -11,10 +11,10 @@ deps: ## Download dependencies
 	go mod tidy
 
 build: ## Build the auth service
-	go build -o bin/auth ./cmd/auth
+	go build -o bin/auth ./cmd/main.go
 
 run: ## Run the auth service (requires .env)
-	go run ./cmd/auth/main.go
+	go run ./cmd/main.go
 
 dev: ## Run with hot reload (requires air: go install github.com/air-verse/air@latest)
 	air

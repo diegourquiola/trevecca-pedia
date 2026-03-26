@@ -155,4 +155,79 @@
     .dark #entry th {
         border-color: #e5e7eb;
     }
+
+    /* Revision history - highlight inserted content */
+    .revision-insert {
+        background-color: rgba(234, 179, 8, 0.3);
+        border-radius: 2px;
+        padding: 0 2px;
+    }
+    
+    .dark .revision-insert {
+        background-color: rgba(234, 179, 8, 0.25);
+    }
+
+    /* Ensure mark elements inherit color properly in dark mode */
+    #entry mark {
+        color: inherit;
+    }
+
+    /* Revision diff styles - deleted content */
+    .revision-deleted {
+        background-color: #fee2e2; /* red-100 */
+        color: #991b1b; /* red-800 */
+        text-decoration: line-through;
+        padding: 0 2px;
+        border-radius: 2px;
+    }
+
+    .dark .revision-deleted {
+        background-color: #7f1d1d; /* red-900 */
+        color: #fecaca; /* red-200 */
+    }
+
+    /* Revision diff styles - added content */
+    .revision-added {
+        background-color: #dcfce7; /* green-100 */
+        color: #166534; /* green-800 */
+        padding: 0 2px;
+        border-radius: 2px;
+    }
+
+    .dark .revision-added {
+        background-color: #166534; /* green-800 */
+        color: #dcfce7; /* green-100 */
+    }
+
+    /* Revision diff styles - added content (block-level) */
+    .revision-added-block {
+        background-color: #dcfce7; /* green-100 */
+        border-left: 4px solid #22c55e; /* green-500 */
+        padding: 12px 16px;
+        margin: 8px 0;
+        border-radius: 4px;
+    }
+
+    .dark .revision-added-block {
+        background-color: #166534; /* green-800 */
+        border-left-color: #4ade80; /* green-400 */
+    }
+
+    /* Revision diff styles - deleted content (block-level) */
+    .revision-deleted-block {
+        background-color: #fee2e2; /* red-100 */
+        border-left: 4px solid #ef4444; /* red-500 */
+        padding: 12px 16px;
+        margin: 8px 0;
+        border-radius: 4px;
+        text-decoration: line-through;
+        color: #6b7280; /* gray-500 */
+        opacity: 0.7;
+    }
+
+    .dark .revision-deleted-block {
+        background-color: #7f1d1d; /* red-900 */
+        border-left-color: #f87171; /* red-400 */
+        color: #d1d5db; /* gray-300 */
+    }
 }

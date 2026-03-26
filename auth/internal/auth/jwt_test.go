@@ -13,7 +13,7 @@ func TestGenerateToken(t *testing.T) {
 
 	userID := uuid.New()
 	email := "test@example.com"
-	roles := []string{"reader", "contributor"}
+	roles := []string{"reader", "contributor", "moderator"}
 
 	token, err := jwtService.GenerateToken(userID, email, roles)
 	if err != nil {
@@ -31,7 +31,7 @@ func TestValidateToken(t *testing.T) {
 
 	userID := uuid.New()
 	email := "test@example.com"
-	roles := []string{"reader", "contributor"}
+	roles := []string{"reader", "contributor", "moderator"}
 
 	token, err := jwtService.GenerateToken(userID, email, roles)
 	if err != nil {

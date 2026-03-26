@@ -222,6 +222,7 @@ DELETE FROM allowed_emails WHERE email = 'student@trevecca.edu';
 |------|-------------|
 | `reader` | Can view wiki pages |
 | `contributor` | Can create and edit wiki pages |
+| `moderator` | Reserved for future moderation features |
 | `admin` | Reserved for future use |
 
 ## Testing

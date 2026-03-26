@@ -1,0 +1,210 @@
+package wikipages
+
+import "web/utils"
+import "fmt"
+import "strings"
+import "time"
+
+// WikiHistoryContent renders the full split-view history page
+templ WikiHistoryContent(page utils.Page, revisions []utils.Revision, currentRevision utils.Revision, highlightedContent string, revisionNumber int, hasChanges bool) {
+	<div class="min-h-screen bg-white dark:bg-neutral-900">
+		<!-- Header with back link -->
+		<div class="border-b border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 sticky top-0 z-30">
+			<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+				<div class="flex items-center justify-between">
+					<a
+						href={ templ.SafeURL(fmt.Sprintf("/pages/%s", page.Slug)) }
+						class="inline-flex items-center text-sm text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-200 transition-colors"
+					>
+						<svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+						</svg>
+						Back to { page.Name }
+					</a>
+					<button
+						onclick="document.getElementById('timeline-drawer').classList.remove('translate-x-full')"
+						class="lg:hidden inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-800 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors"
+					>
+						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+						</svg>
+						History
+					</button>
+				</div>
+			</div>
+		</div>
+
+		<!-- Main split view -->
+		<div class="flex max-w-7xl mx-auto">
+			<!-- Content area -->
+			<div class="flex-1 min-w-0">
+				@WikiHistoryArticle(page, currentRevision, highlightedContent, revisionNumber, hasChanges)
+			</div>
+
+			<!-- Desktop Timeline sidebar -->
+			<div class="hidden lg:block w-80 xl:w-96 border-l border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50 min-h-screen">
+				<div class="sticky top-20 p-4">
+					<h2 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">Revision History</h2>
+					@WikiHistoryTimeline(revisions, currentRevision.UUID.String(), len(revisions))
+				</div>
+			</div>
+		</div>
+
+		<!-- Mobile Timeline Drawer -->
+		<div id="timeline-drawer" class="lg:hidden fixed inset-0 z-50 transform translate-x-full transition-transform duration-300">
+			<!-- Backdrop -->
+			<div 
+				class="absolute inset-0 bg-black/50"
+				onclick="document.getElementById('timeline-drawer').classList.add('translate-x-full')"
+			></div>
+			<!-- Drawer content -->
+			<div class="absolute right-0 top-0 bottom-0 w-80 bg-white dark:bg-neutral-900 shadow-xl flex flex-col">
+				<div class="flex items-center justify-between p-4 border-b border-neutral-200 dark:border-neutral-700">
+					<h2 class="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Revision History</h2>
+					<button
+						onclick="document.getElementById('timeline-drawer').classList.add('translate-x-full')"
+						class="p-2 text-neutral-500 hover:text-neutral-700 dark:text-neutral-400 dark:hover:text-neutral-200"
+					>
+						<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+						</svg>
+					</button>
+				</div>
+				<div class="flex-1 overflow-y-auto p-4">
+					@WikiHistoryTimeline(revisions, currentRevision.UUID.String(), len(revisions))
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+// WikiHistoryArticle renders the article content area
+templ WikiHistoryArticle(page utils.Page, revision utils.Revision, highlightedContent string, revisionNumber int, hasChanges bool) {
+	<div id="article-content" class="p-4 sm:p-6 lg:p-8">
+		<!-- Revision indicator banner -->
+		<div class="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+			<div class="flex items-center justify-between flex-wrap gap-2">
+				<div class="flex items-center gap-3">
+					<span class="flex items-center gap-1.5 text-sm font-medium text-blue-800 dark:text-blue-200">
+						<span class="w-2 h-2 rounded-full bg-green-500"></span>
+						Viewing Rev #{ fmt.Sprintf("%d", revisionNumber) }
+					</span>
+					<span class="text-neutral-400">|</span>
+					<span class="text-sm text-neutral-600 dark:text-neutral-400">
+						{ formatTime(revision.RevDateTime) }
+					</span>
+				</div>
+				<span class="text-sm text-neutral-500 dark:text-neutral-400">
+					by <a href={ templ.SafeURL(fmt.Sprintf("/users/%s", getUsernameFromEmail(revision.Author))) } class="underline hover:text-blue-600 dark:hover:text-blue-400">{ getUsernameFromEmail(revision.Author) }</a>
+				</span>
+			</div>
+			if hasChanges {
+				<p class="text-xs text-blue-600 dark:text-blue-400 mt-2">
+					<span class="inline-block w-3 h-3 bg-yellow-200 dark:bg-yellow-700/50 border-l-2 border-yellow-500 mr-1"></span>
+					Highlighted sections were modified in this revision
+				</p>
+			}
+		</div>
+
+		<!-- Article content -->
+		<article id="entry" class="prose prose-lg dark:prose-dark max-w-none">
+			@templ.Raw(highlightedContent)
+		</article>
+	</div>
+}
+
+// WikiHistoryTimeline renders the timeline component
+templ WikiHistoryTimeline(revisions []utils.Revision, currentRevId string, totalCount int) {
+	<div id="timeline-container" class="space-y-2" hx-swap-oob="true">
+		for i, rev := range revisions {
+			@WikiHistoryTimelineItem(rev, currentRevId, totalCount - i)
+		}
+		
+		<!-- Load more trigger -->
+		if len(revisions) >= 20 {
+			<div
+				hx-get={ fmt.Sprintf("/pages/%s/history/timeline?index=%d", revisions[0].Slug, len(revisions)) }
+				hx-trigger="revealed"
+				hx-target="#timeline-container"
+				hx-swap="beforeend"
+				class="py-4 text-center"
+			>
+				<span class="text-sm text-neutral-500 dark:text-neutral-400">Loading more...</span>
+			</div>
+		}
+	</div>
+}
+
+// WikiHistoryTimelineItem renders a single timeline item
+templ WikiHistoryTimelineItem(rev utils.Revision, currentRevId string, revNumber int) {
+	<button
+		hx-get={ fmt.Sprintf("/pages/%s/history/%s", rev.Slug, rev.UUID.String()) }
+		hx-target="#article-content"
+		hx-swap="outerHTML"
+		hx-push-url={ fmt.Sprintf("/pages/%s/history/%s", rev.Slug, rev.UUID.String()) }
+		hx-indicator={ fmt.Sprintf("#rev-loading-%s", rev.UUID.String()) }
+		class={ "w-full text-left p-3 rounded-lg transition-all duration-200 border-l-4", 
+			templ.KV("border-green-500 bg-green-50 dark:bg-green-900/20", rev.UUID.String() == currentRevId),
+			templ.KV("border-transparent hover:bg-neutral-100 dark:hover:bg-neutral-800", rev.UUID.String() != currentRevId) }
+	>
+		<div class="flex items-start gap-3">
+			<div class="flex-shrink-0 mt-1">
+				if rev.UUID.String() == currentRevId {
+					<span class="w-2.5 h-2.5 rounded-full bg-green-500 block"></span>
+				} else {
+					<span class="w-2.5 h-2.5 rounded-full bg-neutral-300 dark:bg-neutral-600 block"></span>
+				}
+			</div>
+			<div class="flex-1 min-w-0">
+				<div class="flex items-center justify-between gap-2">
+					<span class="font-medium text-neutral-900 dark:text-neutral-100">
+						Rev #{ fmt.Sprintf("%d", revNumber) }
+					</span>
+					<span id={ fmt.Sprintf("rev-loading-%s", rev.UUID.String()) } class="htmx-indicator">
+						<svg class="animate-spin h-4 w-4 text-neutral-500" fill="none" viewBox="0 0 24 24">
+							<circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+							<path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+						</svg>
+					</span>
+				</div>
+				<div class="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
+					{ formatTime(rev.RevDateTime) }
+				</div>
+				<div class="text-xs text-neutral-400 dark:text-neutral-500 mt-0.5 truncate">
+					<a href={ templ.SafeURL(fmt.Sprintf("/users/%s", getUsernameFromEmail(rev.Author))) } class="underline hover:text-blue-600 dark:hover:text-blue-400">{ getUsernameFromEmail(rev.Author) }</a>
+				</div>
+			</div>
+		</div>
+	</button>
+}
+
+// WikiHistoryTimelineItems renders additional timeline items for infinite scroll
+templ WikiHistoryTimelineItems(revisions []utils.Revision, totalCount int, startIndex int) {
+	for i, rev := range revisions {
+		@WikiHistoryTimelineItem(rev, "", totalCount - startIndex - i)
+	}
+	
+	if len(revisions) >= 20 {
+		<div
+			hx-get={ fmt.Sprintf("/pages/%s/history/timeline?index=%d", revisions[0].Slug, startIndex + len(revisions)) }
+			hx-trigger="revealed"
+			hx-target="#timeline-container"
+			hx-swap="beforeend"
+			class="py-4 text-center"
+		>
+			<span class="text-sm text-neutral-500 dark:text-neutral-400">Loading more...</span>
+		</div>
+	}
+}
+
+func formatTime(t time.Time) string {
+	return t.Format("Jan 2, 2006 at 3:04 PM")
+}
+
+func getUsernameFromEmail(email string) string {
+	parts := strings.Split(email, "@")
+	if len(parts) > 0 {
+		return parts[0]
+	}
+	return email
+}

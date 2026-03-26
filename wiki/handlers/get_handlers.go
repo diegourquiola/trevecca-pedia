@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"wiki/database"
 	wikierrors "wiki/errors"
 	"wiki/requests"
 	"wiki/utils"
@@ -132,7 +133,13 @@ func PageRevisionsHandler(c *gin.Context) {
 	if err != nil {
 		count = 10
 	}
-	revisions, err := requests.GetRevisions(ctx, db, pageId, ind, count)
+	var revisions []database.RevInfo
+	if pageId != "" {
+		revisions, err = requests.GetRevisions(ctx, db, pageId, ind, count)
+	} else {
+		author := c.DefaultQuery("author", "")
+		revisions, err = requests.GetRevisionsByAuthor(ctx, db, author, ind, count)
+	}
 	if err != nil {
 		werr, is := wikierrors.AsWikiError(err)
 		if !is {

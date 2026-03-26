@@ -2,7 +2,40 @@ package components
 
 import "web/utils"
 
-templ HomeContent(categories []utils.Category) {
+templ HomeContent(categories []utils.Category, deleted bool) {
+	if deleted {
+		<div id="delete-success" class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+			<div class="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
+				<svg class="w-5 h-5 text-green-500 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+				</svg>
+				<div class="flex-1">
+					<p class="text-sm font-medium text-green-800">Page deleted successfully</p>
+				</div>
+				<button onclick="dismissDelete()" class="text-green-600 hover:text-green-800 transition-colors" aria-label="Dismiss">
+					<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+					</svg>
+				</button>
+			</div>
+		</div>
+		<script>
+			function dismissDelete() {
+				var el = document.getElementById('delete-success');
+				if (el) {
+					el.style.transition = 'opacity 0.3s ease';
+					el.style.opacity = '0';
+					setTimeout(function() {
+						el.style.display = 'none';
+					}, 300);
+				}
+			}
+			// Auto-dismiss after 5 seconds
+			setTimeout(function() {
+				dismissDelete();
+			}, 5000);
+		</script>
+	}
 	@HeroSection()
 	if len(categories) > 0 {
 		@CategoryCards(categories)

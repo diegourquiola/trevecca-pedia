@@ -1,0 +1,35 @@
+# Git
+.git
+.gitignore
+
+# Environment variables
+.env
+.env.local
+
+# Build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+moderation-service
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation
+README.md
+
+# Temporary files
+tmp/
+.air.toml
