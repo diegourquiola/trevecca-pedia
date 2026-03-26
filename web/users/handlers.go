@@ -132,7 +132,7 @@ func GetUserRevisionsPartial(c *gin.Context) {
 
 // fetchUserByUsername fetches user data from auth service
 func fetchUserByUsername(username string) (*UserResponse, error) {
-	url := fmt.Sprintf("%s/users/%s", config.AuthURL, username)
+	url := fmt.Sprintf("%s/users/%s", config.AuthURL, url.PathEscape(username))
 
 	resp, err := httpClient.Get(url)
 	if err != nil {
