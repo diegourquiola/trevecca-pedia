@@ -33,6 +33,7 @@ So, calls to the `wiki` service begin with: `/v1/wiki`
 | `GET`     | `/indexable-pages{?index=ind&count=n}`    | `index`, `count`          | Returns a list of indexable pages for search indexing. |
 | `GET`     | `/categories{?tree=bool&root=bool}`       | `tree`, `root`            | Returns all categories. |
 | `GET`     | `/pages/:id/categories`                   | `:id`                     | Returns categories assigned to the specified page. |
+| `GET`     | `/revisions{?author=email&index=ind&count=n}` | `author`, `index`, `count` | Returns revisions by author email, sorted by date (newest first). |
 
 #### Arguments
 `index`: the index to be the first item  

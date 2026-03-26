@@ -3,6 +3,7 @@ package requests
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"wiki/database"
 	wikierrors "wiki/errors"
 	"wiki/filesystem"
@@ -298,6 +299,35 @@ func GetRevisions(ctx context.Context, db *sql.DB, pageId string, ind int, count
 			continue
 		}
 		revs = append(revs, *revInfo)
+	}
+
+	return revs, nil
+}
+
+func GetRevisionsByAuthor(ctx context.Context, db *sql.DB, author string, ind int, count int) ([]database.RevInfo, error) {
+	var revs []database.RevInfo
+	rows, err := db.QueryContext(ctx, `
+		SELECT uuid FROM revisions WHERE author=$1
+		ORDER BY date_time DESC
+		LIMIT $2
+		OFFSET $3;
+	`, fmt.Sprintf("%s@trevecca.edu", author), count, ind)
+	if err != nil {
+		return nil, wikierrors.DatabaseError(err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var revId uuid.UUID
+		err = rows.Scan(&revId)
+		if err != nil {
+			return nil, wikierrors.DatabaseError(err)
+		}
+		rev, err := database.GetRevisionInfo(ctx, db, revId)
+		if err != nil {
+			return nil, wikierrors.DatabaseError(err)
+		}
+		revs = append(revs, *rev)
 	}
 
 	return revs, nil

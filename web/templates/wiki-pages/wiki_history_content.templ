@@ -2,6 +2,7 @@ package wikipages
 
 import "web/utils"
 import "fmt"
+import "strings"
 import "time"
 
 // WikiHistoryContent renders the full split-view history page
@@ -94,7 +95,7 @@ templ WikiHistoryArticle(page utils.Page, revision utils.Revision, highlightedCo
 					</span>
 				</div>
 				<span class="text-sm text-neutral-500 dark:text-neutral-400">
-					by { revision.Author }
+					by <a href={ templ.SafeURL(fmt.Sprintf("/users/%s", getUsernameFromEmail(revision.Author))) } class="underline hover:text-blue-600 dark:hover:text-blue-400">{ getUsernameFromEmail(revision.Author) }</a>
 				</span>
 			</div>
 			if hasChanges {
@@ -170,7 +171,7 @@ templ WikiHistoryTimelineItem(rev utils.Revision, currentRevId string, revNumber
 					{ formatTime(rev.RevDateTime) }
 				</div>
 				<div class="text-xs text-neutral-400 dark:text-neutral-500 mt-0.5 truncate">
-					{ rev.Author }
+					<a href={ templ.SafeURL(fmt.Sprintf("/users/%s", getUsernameFromEmail(rev.Author))) } class="underline hover:text-blue-600 dark:hover:text-blue-400">{ getUsernameFromEmail(rev.Author) }</a>
 				</div>
 			</div>
 		</div>
@@ -198,4 +199,12 @@ templ WikiHistoryTimelineItems(revisions []utils.Revision, totalCount int, start
 
 func formatTime(t time.Time) string {
 	return t.Format("Jan 2, 2006 at 3:04 PM")
+}
+
+func getUsernameFromEmail(email string) string {
+	parts := strings.Split(email, "@")
+	if len(parts) > 0 {
+		return parts[0]
+	}
+	return email
 }

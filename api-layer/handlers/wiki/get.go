@@ -160,3 +160,36 @@ func GetPageCategories(c *gin.Context) {
 
 	c.Data(res.StatusCode, res.Header.Get("Content-Type"), body)
 }
+
+func GetRevisionsByAuthor(c *gin.Context) {
+	author := c.Query("author")
+	if author == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "author parameter required"})
+		return
+	}
+
+	ind, err := strconv.Atoi(c.DefaultQuery("index", "0"))
+	if err != nil {
+		ind = 0
+	}
+	count, err := strconv.Atoi(c.DefaultQuery("count", "20"))
+	if err != nil {
+		count = 20
+	}
+
+	res, err := http.Get(fmt.Sprintf("%s/revisions?author=%s&index=%d&count=%d",
+		config.WikiServiceURL, author, ind, count))
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch revisions"})
+		return
+	}
+	defer res.Body.Close()
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to read response"})
+		return
+	}
+
+	c.Data(res.StatusCode, res.Header.Get("Content-Type"), body)
+}
